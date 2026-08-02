@@ -43,9 +43,9 @@ values
   ('40000000-0000-0000-0000-000000000002', 'ENG', 'English')
 on conflict (id) do update set code = excluded.code, name = excluded.name;
 
-insert into public.teachers (id, profile_id, employee_number, employment_started_on)
-values ('50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002', 'T-0001', '2026-03-21')
-on conflict (id) do update set profile_id = excluded.profile_id, employee_number = excluded.employee_number;
+insert into public.teachers (id, profile_id, employee_number, first_name, last_name, phone, email, qualification, employment_started_on)
+values ('50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002', 'T-0001', 'Seed', 'Teacher', '+000000001', 'seed-teacher@example.invalid', 'Demonstration record only', '2026-03-21')
+on conflict (id) do update set profile_id = excluded.profile_id, employee_number = excluded.employee_number, first_name = excluded.first_name, last_name = excluded.last_name, phone = excluded.phone, email = excluded.email, qualification = excluded.qualification;
 
 insert into public.students (id, profile_id, admission_number, first_name, last_name, enrolled_on)
 values
@@ -74,3 +74,12 @@ values
   ('90000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002', '2026-03-21'),
   ('90000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002', '2026-03-21')
 on conflict (id) do nothing;
+
+-- Non-personal demonstration attendance. These records are intentionally
+-- labelled seed data and use .invalid identities only.
+insert into public.attendance_records (student_id, section_id, academic_year_id, attendance_date, status, remarks, marked_by)
+values
+  ('60000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', '2026-08-01', 'present', 'Demonstration record', '10000000-0000-0000-0000-000000000002'),
+  ('60000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', '2026-08-01', 'late', 'Demonstration record', '10000000-0000-0000-0000-000000000002')
+on conflict (student_id, section_id, academic_year_id, attendance_date)
+do update set status = excluded.status, remarks = excluded.remarks, marked_by = excluded.marked_by;
