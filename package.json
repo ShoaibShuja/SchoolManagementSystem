@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/admin/*.test.ts",
     "bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
