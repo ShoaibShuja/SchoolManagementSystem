@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The shared application foundation is complete. The next phase creates the secure Supabase database, roles, and permissions. Student records, attendance, results, fees, and other school workflows are not available yet.
+The secure database and authentication foundation is complete. The next phase builds student records, teacher records, classes, sections, attendance, and the admin dashboard. Results, fees, timetables, and announcements are not available yet.
 
 ## Main user roles
 
@@ -21,7 +21,8 @@ The shared application foundation is complete. The next phase creates the secure
 - `components/` contains reusable interface pieces, forms, and the application shell.
 - `lib/` contains environment checks, Supabase helpers, query keys, and shared utilities.
 - `docs/` contains owner-facing project documentation.
-- `supabase/` will contain versioned database migrations and tests in the next phase.
+- `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
+- `scripts/` contains the server-only initial-admin bootstrap command.
 
 ## Local setup
 
@@ -44,7 +45,22 @@ The shared application foundation is complete. The next phase creates the secure
 
 ## Initial admin setup
 
-This is not available yet. The next phase will provide a secure, documented first-admin bootstrap process. Do not create a public signup page or store passwords in project tables.
+1. Create or select the Supabase project for the environment.
+2. Apply the versioned migrations using the official Supabase CLI from a supported development host or through the Supabase SQL migration workflow.
+3. Add the required environment variables locally and in the deployment environment.
+4. Set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` only in the terminal session that will create the first administrator.
+5. Run `npm run bootstrap:admin`.
+6. Open the invitation email and set the administrator password through Supabase Auth.
+
+The bootstrap command refuses to create a second admin profile. Never place application passwords or password hashes in database tables, seed files, or source code.
+
+## Database setup
+
+Database changes live in `supabase/migrations/` and must be applied in timestamp order. The schema includes profiles, people, academic structure, assignments, attendance, assessments, fees, announcements, RLS, and private Storage buckets.
+
+For local development, `supabase/seed.sql` creates clearly labelled example identities and school records. The seeded Auth rows have no usable password, are for local database tests only, and must never be used in production.
+
+RLS is enabled for every public application table. Admins manage records; teachers are limited to assigned sections and subjects; students see only their own records; parents see only linked children. The application also checks roles on the server before rendering protected routes.
 
 ## How to change branding and colors
 
@@ -52,16 +68,17 @@ The future primary and accent school colors are centralized in `app/globals.css`
 
 ## Current user experience
 
-- The sign-in page is ready for Supabase Auth configuration.
-- Each role has a responsive placeholder dashboard and role-specific navigation.
+- The sign-in page uses Supabase Auth and routes active profiles to the correct role dashboard.
+- The sign-out action ends the browser session through a protected route handler.
+- Each role has a responsive placeholder dashboard and role-specific navigation; business modules will populate them in later phases.
 - School records and features will appear progressively as development phases are completed.
 
 ## Deployment overview
 
-The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. Deployment, backups, and monitoring guidance will be expanded before launch.
+The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
 
 ## Known limitations
 
-- No production database schema or RLS policies exist yet.
-- No school records, attendance, parent links, results, fees, or announcements are implemented.
-- No automated tests exist yet.
+- Database migrations and policies must still be applied and exercised in a real Supabase environment.
+- Student, teacher, attendance, results, fee, timetable, and announcement screens are not implemented yet.
+- The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.

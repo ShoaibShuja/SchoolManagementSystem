@@ -23,7 +23,7 @@ export function LoginForm() {
     if (!configured) { toast.error("Authentication is not configured yet."); return; }
     const { error } = await createClient().auth.signInWithPassword(values);
     if (error) { toast.error("We could not sign you in. Check your email and password."); return; }
-    router.replace("/unauthorized");
+    router.replace("/dashboard");
     router.refresh();
   }
 

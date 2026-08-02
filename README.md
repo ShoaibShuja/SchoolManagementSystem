@@ -4,7 +4,7 @@ A production-focused, single-school management application built with Next.js, T
 
 ## Current status
 
-The application foundation is complete. Authentication utilities, the responsive shell, placeholder role dashboards, shared UI primitives, and project documentation are in place. Database migrations and business modules have not started.
+The database and authentication foundation is complete. Versioned schema, RLS, private Storage policies, invite-only provisioning, profile-based route guards, and role dashboard redirects are in place. MVP school-record modules have not started.
 
 ## Local setup
 
@@ -20,6 +20,7 @@ npm run dev
 npm run lint
 npm run typecheck
 npm run build
+npm run bootstrap:admin
 ```
 
 ## Environment variables
@@ -28,5 +29,7 @@ npm run build
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` server-only. Never expose it to the browser.
+
+Apply migrations with the official Supabase CLI from a supported development host before running the application against a database. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for the initial administrator procedure.
 
 See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for owner-focused setup and [PROJECT_STATE.md](PROJECT_STATE.md) for current technical progress.
