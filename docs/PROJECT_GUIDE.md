@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The secure database and authentication foundation is complete. The next phase builds student records, teacher records, classes, sections, attendance, and the admin dashboard. Results, fees, timetables, and announcements are not available yet.
+The administrative record-management MVP is complete in source code. Administrators can manage students, teachers, classes, sections, guardian information, student transfers, and optional account invitations. Daily attendance marking, results, fees, timetables, and announcements are not available yet.
 
 ## Main user roles
 
@@ -18,8 +18,10 @@ The secure database and authentication foundation is complete. The next phase bu
 ## Folder structure
 
 - `app/` contains pages, route groups, and global UI states.
+- `components/admin/` contains dashboard, student, teacher, class, section, and form-dialog interfaces.
 - `components/` contains reusable interface pieces, forms, and the application shell.
-- `lib/` contains environment checks, Supabase helpers, query keys, and shared utilities.
+- `lib/admin/` contains server-only data access, API guards, Zod schemas, DTOs, filters, and account-linking logic.
+- `app/api/admin/` contains protected endpoints used by interactive admin tables.
 - `docs/` contains owner-facing project documentation.
 - `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
 - `scripts/` contains the server-only initial-admin bootstrap command.
@@ -70,8 +72,20 @@ The future primary and accent school colors are centralized in `app/globals.css`
 
 - The sign-in page uses Supabase Auth and routes active profiles to the correct role dashboard.
 - The sign-out action ends the browser session through a protected route handler.
-- Each role has a responsive placeholder dashboard and role-specific navigation; business modules will populate them in later phases.
-- School records and features will appear progressively as development phases are completed.
+- Administrators have a concise dashboard with active student and teacher totals, class and section counts, and today’s attendance progress when records exist.
+- Administrators can search, filter, paginate, create, edit, view, activate, and deactivate student records. Every student has a primary guardian contact and can be enrolled or moved to one section per academic year.
+- Administrators can search, filter, create, edit, and view teacher and basic staff records. Employment details are record-keeping only; there is no payroll or HR module.
+- Administrators can create, edit, and remove classes and sections. Sections enforce their configured capacity for active enrollments. Deletion is prevented when a record is still in use.
+- A school record does not need a login account. When an administrator supplies a student or teacher email, the system uses the server-only invitation process to create an Auth profile and link it to that record. Never use this screen to share or store passwords.
+- Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
+
+## Admin record management
+
+1. Open **Students** to add a learner, their admission information, current academic-year section, and primary guardian. Leave the academic year and section blank together when the student is not ready for placement.
+2. Use the student edit action to change a current section. The previous active enrollment is recorded as transferred, and a full destination section is rejected.
+3. Open **Teachers** to maintain employee number, contact information, qualification, and employment status. Staff records can exist without a login account.
+4. Open **Classes** to create grades and sections. Set a sensible capacity before enrollment. A class or section with dependent records cannot be deleted.
+5. Use the optional account email on a new or existing student or teacher record to send a secure invitation. “Activated” means an Auth profile is linked; it does not mean the person has necessarily completed their invitation yet.
 
 ## Deployment overview
 
@@ -80,5 +94,7 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 ## Known limitations
 
 - Database migrations and policies must still be applied and exercised in a real Supabase environment.
-- Student, teacher, attendance, results, fee, timetable, and announcement screens are not implemented yet.
+- Profile-image uploads need live private-Storage verification before production use.
+- Daily teacher attendance marking and complete admin attendance summaries are not implemented; the dashboard only reports stored attendance records for today.
+- Results, fees, timetables, and announcements are not implemented yet.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.

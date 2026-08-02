@@ -1,4 +1,4 @@
-import { BookOpenCheck, CalendarCheck, GraduationCap, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { BookOpenCheck, CalendarCheck, GraduationCap, LayoutDashboard, School, Users, type LucideIcon } from "lucide-react";
 
 export const roles = ["admin", "teacher", "student", "parent"] as const;
 export type AppRole = (typeof roles)[number];
@@ -9,6 +9,8 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
   admin: [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/students", label: "Students", icon: Users },
+    { href: "/admin/teachers", label: "Teachers", icon: GraduationCap },
+    { href: "/admin/classes", label: "Classes", icon: School },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
   ],
   teacher: [

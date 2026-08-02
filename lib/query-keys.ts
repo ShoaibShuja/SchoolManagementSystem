@@ -3,5 +3,6 @@ export const queryKeys = {
   dashboard: (role: string) => ["dashboard", role] as const,
   students: (filters?: Record<string, string | number | boolean | undefined>) => ["students", filters] as const,
   teachers: (filters?: Record<string, string | number | boolean | undefined>) => ["teachers", filters] as const,
+  classes: (academicYearId?: string) => ["classes", academicYearId] as const,
   attendance: (sectionId: string, date: string) => ["attendance", sectionId, date] as const,
 };
