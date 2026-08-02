@@ -26,6 +26,7 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
   parent: [
     { href: "/parent", label: "Dashboard", icon: LayoutDashboard },
     { href: "/parent/children", label: "Children", icon: GraduationCap },
+    { href: "/parent/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/parent/announcements", label: "Announcements", icon: BookOpenCheck },
   ],
 };
