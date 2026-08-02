@@ -117,6 +117,7 @@ Build the administrative record-management portion of the MVP.
 - `224b365` feat: add secure admin record data layer
 - `fa0571b` feat: add admin record management screens
 - `038504e` test: cover admin record contracts
+- `b828b23` fix: enforce filtered enrollment records
 
 ## Recommended next prompt
 
