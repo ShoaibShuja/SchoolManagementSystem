@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The core MVP is complete in source code and has passed local tests, linting, type checking, and a production build. Administrators can manage records and review or correct attendance; teachers can mark assigned sections; students and parents can view only their allowed attendance. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Results, fees, timetables, and announcements are not available yet.
+The core MVP and the academic/timetable phase are complete in source code and have passed local tests, linting, type checking, and a production build. Administrators can manage records, attendance, academic years, terms, subjects, teacher assignments, and weekly timetables. Teachers, students, and parents have appropriately scoped read-only timetable views. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Results, fees, and announcements are not available yet.
 
 ## Main user roles
 
@@ -19,12 +19,14 @@ The core MVP is complete in source code and has passed local tests, linting, typ
 
 - `app/` contains pages, route groups, and global UI states.
 - `components/admin/` contains dashboard, student, teacher, class, section, and form-dialog interfaces.
+- `components/academics/` contains academic management and mobile-friendly weekly timetable views.
 - `components/` contains reusable interface pieces, forms, and the application shell.
 - `lib/admin/` contains server-only data access, API guards, Zod schemas, DTOs, filters, and account-linking logic.
 - `app/api/admin/` contains protected endpoints used by interactive admin tables.
 - `app/api/attendance/` contains role-protected attendance roster, save, and admin review endpoints.
 - `components/attendance/` contains the mobile-friendly marking workflow, summaries, and role dashboards.
 - `lib/attendance/` contains attendance DTOs, schemas, data access, API guards, and summary helpers.
+- `lib/academics/` contains academic/timetable DTOs, Zod schemas, server-only data access, and scoped portal queries.
 - `docs/` contains owner-facing project documentation.
 - `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
 - `scripts/` contains the server-only initial-admin bootstrap command.
@@ -71,7 +73,7 @@ RLS is enabled for every public application table. Admins manage records; teache
 
 Use a separate Supabase development or demonstration project, never the production project.
 
-1. Apply every migration through `20260802000600_add_attendance_workflows.sql` in order.
+1. Apply every migration through `20260802000700_strengthen_academics_and_timetables.sql` in order.
 2. Optionally run `supabase/seed.sql` for clearly fictional `example.invalid` school records and attendance samples. It includes no usable password or real personal data.
 3. Configure environment variables and run `npm run bootstrap:admin` to create the first administrator through Supabase Auth.
 4. Sign in as the administrator, then create or invite separate test accounts for each role. Link only test student and parent profiles to the seed records.
@@ -93,7 +95,8 @@ The future primary and accent school colors are centralized in `app/globals.css`
 - Administrators can create, edit, and remove classes and sections. Sections enforce their configured capacity for active enrollments. Deletion is prevented when a record is still in use.
 - A school record does not need a login account. When an administrator supplies a student or teacher email, the system uses the server-only invitation process to create an Auth profile and link it to that record. Never use this screen to share or store passwords.
 - Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
-- Teachers see assigned sections, today’s attendance tasks, and a truthful timetable placeholder. Students see their current class and attendance summary. Parents see linked children and read-only attendance availability.
+- Administrators use **Academic setup** to manage the school calendar, terms, active subjects, teacher assignments, enrollment history review, and the weekly timetable.
+- Teachers see only their assigned subjects, sections, scheduled lesson count, and weekly timetable. Students see the timetable for their current section. Parents see timetables for linked children only.
 
 ## Attendance manual
 
@@ -123,6 +126,30 @@ The future primary and accent school colors are centralized in `app/globals.css`
 4. Open **Classes** to create grades and sections. Set a sensible capacity before enrollment. A class or section with dependent records cannot be deleted.
 5. Use the optional account email on a new or existing student or teacher record to send a secure invitation. “Activated” means an Auth profile is linked; it does not mean the person has necessarily completed their invitation yet.
 
+## Academic setup and timetable manual
+
+### Academic years and terms
+
+1. Open **Academic setup** as an administrator and create the academic year with its first and last day.
+2. Mark only the school’s operating year as **Current**. The database prevents more than one current year.
+3. Add terms under that year. Each term must fall inside the year and cannot overlap another term.
+4. Archive old years instead of deleting them. Historical enrollments, attendance, and future results depend on those records.
+
+### Subjects and teacher assignments
+
+1. Add each subject with a clear name and short code. Active codes must be unique. Set a subject inactive rather than deleting it when it has historical use.
+2. Create one assignment for each teacher, subject, section, and academic year combination.
+3. An assignment is the source of truth for teacher access. A teacher can see only their own assignments and related timetable entries.
+4. The assignment list displays how many weekly lessons have been scheduled, making unplanned workloads easy to spot.
+
+### Weekly timetable
+
+1. Add a teacher assignment before adding its lesson.
+2. Choose the academic year, assignment, weekday, start and end times, and optionally a room.
+3. The system rejects reversed times and overlapping lessons for the same section, teacher, or named room. Adjacent lessons are allowed.
+4. Timetables are shown as weekday groups instead of a dense grid, which also works well on mobile screens.
+5. To adjust a student’s current placement, use the student record transfer flow. The enrollment review is read-only so historical records are not accidentally reassigned.
+
 ## Deployment overview
 
 The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
@@ -131,6 +158,6 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 
 - The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
-- Attendance, RLS, and save-function behavior need live Supabase verification before production use.
-- Results, fees, timetables, and announcements are not implemented yet.
+- Attendance, academic/timetable RLS, and timetable conflict behavior need live Supabase verification before production use.
+- Gradebooks/results, report cards, fees, and announcements are not implemented yet.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.

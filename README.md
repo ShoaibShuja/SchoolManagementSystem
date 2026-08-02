@@ -4,7 +4,7 @@ A production-focused, single-school management application built with Next.js, T
 
 ## Current status
 
-The core MVP is source-complete and locally validated: secure administrative records, teacher attendance marking, admin attendance review/correction, student and parent read-only attendance, and useful dashboards for all four roles. It is not yet release-approved because migrations, live Auth, and executable RLS isolation checks still need a linked Supabase project.
+The core MVP plus academic structure and timetable workflows are source-complete and locally validated. Administrators can manage years, terms, subjects, teaching assignments, and conflict-checked lessons; teachers, students, and parents have read-only timetable views. It is not yet release-approved because migrations, live Auth, and executable RLS isolation checks still need a linked Supabase project.
 
 ## Local setup
 
@@ -31,6 +31,6 @@ npm run bootstrap:admin
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` server-only. Never expose it to the browser.
 
-Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, through `20260802000600_add_attendance_workflows.sql`. For a safe demonstration database, use only the clearly fictional `.invalid` records in `supabase/seed.sql`; it contains no usable passwords and must not be used in production. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) and [docs/MVP_AUDIT.md](docs/MVP_AUDIT.md) for setup, verification, records, and attendance instructions.
+Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, through `20260802000700_strengthen_academics_and_timetables.sql`. For a safe demonstration database, use only the clearly fictional `.invalid` records in `supabase/seed.sql`; it contains no usable passwords and must not be used in production. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) and [docs/MVP_AUDIT.md](docs/MVP_AUDIT.md) for setup, verification, records, attendance, and academic setup instructions.
 
 See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for owner-focused setup and [PROJECT_STATE.md](PROJECT_STATE.md) for current technical progress.
