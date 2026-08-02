@@ -1,0 +1,9 @@
+import { TimetableSchedule } from "@/components/academics/timetable-schedule";
+import { AppShell } from "@/components/shell/app-shell";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { PageHeader } from "@/components/shared/page-header";
+import { getTeacherAcademicWorkload } from "@/lib/academics/data";
+import { requireRole } from "@/lib/auth/guards";
+
+export const metadata = { title: "My teaching" };
+export default async function TeacherAcademicsPage() { await requireRole("teacher"); const workload = await getTeacherAcademicWorkload(); return <AppShell role="teacher"><div className="space-y-6"><Breadcrumbs items={[{ label: "Teacher", href: "/teacher" }, { label: "My teaching" }]} /><PageHeader eyebrow="My work" title="Subjects, sections, and timetable" description="Your teaching scope comes directly from the school’s current assignments." /><section className="grid gap-3 md:grid-cols-2">{workload.assignments.map((assignment) => <article key={assignment.id} className="rounded-lg border bg-card p-4"><p className="font-semibold">{assignment.subjectName} <span className="text-sm font-normal text-muted-foreground">({assignment.subjectCode})</span></p><p className="mt-1 text-sm text-muted-foreground">{assignment.className} / Section {assignment.sectionName}</p><p className="mt-1 text-xs text-muted-foreground">{assignment.academicYearName} · {assignment.lessonCount} scheduled lesson{assignment.lessonCount === 1 ? "" : "s"}</p></article>)}{workload.assignments.length === 0 ? <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">You do not have any teaching assignments yet. Ask an administrator to add one.</p> : null}</section><section className="space-y-4"><h2 className="text-lg font-semibold">Weekly timetable</h2><TimetableSchedule entries={workload.timetable} emptyMessage="No lessons are scheduled for your current assignments." /></section></div></AppShell>; }
