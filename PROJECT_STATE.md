@@ -2,15 +2,15 @@
 
 ## Current phase
 
-MVP admin record management is implemented on the feature branch. A linked Supabase project is still required to apply the migration and verify runtime RLS and Storage behavior.
+Core MVP attendance and role dashboards are implemented on the feature branch. A linked Supabase project is still required to apply migrations and verify runtime RLS, Storage, and attendance behavior.
 
 ## Current branch
 
-`feat/mvp-admin-records`
+`feat/mvp-attendance-dashboards`
 
 ## Last completed prompt
 
-Build the administrative record-management portion of the MVP.
+Complete the core MVP by implementing attendance and useful dashboards for all four roles.
 
 ## Completed work
 
@@ -30,16 +30,18 @@ Build the administrative record-management portion of the MVP.
 - Added validated private Storage profile-image upload for linked student accounts; the path is checked against the linked profile before it is saved.
 - Added centralized admin DTOs, Zod schemas, data-access functions, protected API routes, TanStack Query table mutations, and focused unit/contract tests.
 - Added a migration that gives teacher records independent identity/contact fields, adds enforced section capacity, and performs section transfers atomically.
+- Added teacher-scoped attendance marking, admin attendance review/correction, student self-only attendance, and parent linked-child attendance.
+- Added role-specific teacher, student, and parent dashboards, plus admin pending-attendance counts.
+- Added academic-year date validation and an atomic attendance save function that validates assignment, roster membership, and duplicates.
 
 ## In-progress work
 
-- Apply migration `20260802000500_support_admin_record_management.sql` in the configured Supabase project.
+- Apply migrations through `20260802000600_add_attendance_workflows.sql` in the configured Supabase project.
 - Exercise admin records, RLS policies, Storage policies, and invitation email flows against the linked project.
 
 ## Remaining work
 
 - Apply and verify the existing migrations in a Supabase project before relying on database-backed UI.
-- Build teacher-scoped daily attendance marking and admin attendance summaries.
 - Build beta academic, timetable, gradebook, report-card, announcement, portal, and fee modules.
 - Add database, integration, end-to-end, accessibility, and deployment test coverage.
 
@@ -56,6 +58,7 @@ Build the administrative record-management portion of the MVP.
 - The admin data-access layer is server-only, requires an active admin profile, and returns minimal DTOs. Interactive admin tables use protected API routes with the same server-side role check and database RLS.
 - Student account invitations are optional. The school record is created or edited independently; an email invitation only links an Auth profile when requested.
 - A section does not have a homeroom-teacher field because the approved normalized schema models teacher assignments by subject and academic year. Capacity is enforced per active academic-year enrollment.
+- Attendance saves use a security-invoker database function. Teachers need a current section assignment; repeated saves correct an existing record rather than duplicating it.
 
 ## Database migrations
 
@@ -64,6 +67,7 @@ Build the administrative record-management portion of the MVP.
 - `20260802000300_enable_row_level_security.sql`
 - `20260802000400_create_private_storage_policies.sql`
 - `20260802000500_support_admin_record_management.sql`
+- `20260802000600_add_attendance_workflows.sql`
 
 ## Implemented routes
 
@@ -78,6 +82,9 @@ Build the administrative record-management portion of the MVP.
 - `/admin/teachers`
 - `/admin/classes`
 - `/admin/attendance` (truthful placeholder until daily marking is delivered)
+- `/teacher/attendance`
+- `/student/attendance`
+- `/parent/attendance`
 - `/dashboard`
 - `/auth/callback`
 - `/auth/signout`
@@ -95,14 +102,13 @@ Build the administrative record-management portion of the MVP.
 - Migrations and RLS policies could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
-- Daily teacher attendance marking and its full admin summary screen are not implemented. The dashboard only counts existing records for today.
 - Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
-- Migration, RLS, invitation, account-link, and capacity behavior cannot be executed in this Windows runtime without a linked Supabase project.
+- Migration, RLS, invitation, account-link, capacity, and attendance behavior cannot be executed in this Windows runtime without a linked Supabase project.
 - `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
 
 ## Test and build status
 
-2026-08-02: `npm run lint`, `npm run test` (7 tests), `npm run typecheck`, and `npm run build` passed. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS tests remain pending a Supabase database environment.
+2026-08-02: `npm run lint`, `npm run test` (10 tests), `npm run typecheck`, and `npm run build` passed. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS tests remain pending a Supabase database environment.
 
 ## Latest important commits
 
@@ -119,7 +125,9 @@ Build the administrative record-management portion of the MVP.
 - `fa0571b` feat: add admin record management screens
 - `038504e` test: cover admin record contracts
 - `b828b23` fix: enforce filtered enrollment records
+- `8fbe45d` feat: add secure attendance data workflows
+- `71c1063` feat: add role attendance and dashboard screens
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000500` to a Supabase project, then perform live admin CRUD, enrollment-transfer, capacity, RLS, invitation, and private Storage verification. After that, implement teacher-scoped daily attendance marking and admin attendance summaries.
+Apply migrations through `20260802000600` to a Supabase project, then perform live attendance marking, correction, duplicate, assignment, self-only, parent-link, RLS, and private Storage verification. Next, build timetable and gradebook modules.

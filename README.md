@@ -4,7 +4,7 @@ A production-focused, single-school management application built with Next.js, T
 
 ## Current status
 
-The administrative record-management MVP is implemented. It includes secure admin student, guardian, teacher, class, section, enrollment-transfer, optional Auth-account-linking, and dashboard-count modules, backed by versioned Supabase schema/RLS foundations.
+The core MVP is implemented: secure administrative records, teacher attendance marking, admin attendance review/correction, student and parent read-only attendance, and useful dashboards for all four roles.
 
 ## Local setup
 
@@ -31,6 +31,6 @@ npm run bootstrap:admin
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` server-only. Never expose it to the browser.
 
-Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, including `20260802000500_support_admin_record_management.sql`. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for the initial administrator procedure and admin record-management instructions.
+Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, through `20260802000600_add_attendance_workflows.sql`. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for setup, records, and attendance instructions.
 
 See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for owner-focused setup and [PROJECT_STATE.md](PROJECT_STATE.md) for current technical progress.

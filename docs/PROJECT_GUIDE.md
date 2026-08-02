@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The administrative record-management MVP is complete in source code. Administrators can manage students, teachers, classes, sections, guardian information, student transfers, and optional account invitations. Daily attendance marking, results, fees, timetables, and announcements are not available yet.
+The core MVP is complete in source code. Administrators can manage records and review or correct attendance; teachers can mark assigned sections; students and parents can view only their allowed attendance. Results, fees, timetables, and announcements are not available yet.
 
 ## Main user roles
 
@@ -22,6 +22,9 @@ The administrative record-management MVP is complete in source code. Administrat
 - `components/` contains reusable interface pieces, forms, and the application shell.
 - `lib/admin/` contains server-only data access, API guards, Zod schemas, DTOs, filters, and account-linking logic.
 - `app/api/admin/` contains protected endpoints used by interactive admin tables.
+- `app/api/attendance/` contains role-protected attendance roster, save, and admin review endpoints.
+- `components/attendance/` contains the mobile-friendly marking workflow, summaries, and role dashboards.
+- `lib/attendance/` contains attendance DTOs, schemas, data access, API guards, and summary helpers.
 - `docs/` contains owner-facing project documentation.
 - `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
 - `scripts/` contains the server-only initial-admin bootstrap command.
@@ -78,6 +81,27 @@ The future primary and accent school colors are centralized in `app/globals.css`
 - Administrators can create, edit, and remove classes and sections. Sections enforce their configured capacity for active enrollments. Deletion is prevented when a record is still in use.
 - A school record does not need a login account. When an administrator supplies a student or teacher email, the system uses the server-only invitation process to create an Auth profile and link it to that record. Never use this screen to share or store passwords.
 - Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
+- Teachers see assigned sections, today’s attendance tasks, and a truthful timetable placeholder. Students see their current class and attendance summary. Parents see linked children and read-only attendance availability.
+
+## Attendance manual
+
+### Teachers
+
+1. Open **Attendance**. Only current sections assigned to you are shown.
+2. Choose a section and date. The roster contains only actively enrolled students for that date.
+3. Use **All present**, then change individuals to absent, late, or excused and add short notes if needed.
+4. Save. Re-saving the same section and date updates records instead of creating duplicates.
+
+### Administrators
+
+1. Open **Attendance** to make authorized corrections.
+2. Use date, class, section, student, and status filters to review saved records and who saved them.
+3. The dashboard shows current-day coverage and pending attendance records.
+
+### Students and parents
+
+- Students can view only their own attendance summary and recent records.
+- Parents select a linked child and view that child’s attendance only. These pages are read-only.
 
 ## Admin record management
 
@@ -95,6 +119,6 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 
 - Database migrations and policies must still be applied and exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
-- Daily teacher attendance marking and complete admin attendance summaries are not implemented; the dashboard only reports stored attendance records for today.
+- Attendance, RLS, and save-function behavior need live Supabase verification before production use.
 - Results, fees, timetables, and announcements are not implemented yet.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.
