@@ -116,6 +116,7 @@ Build the administrative record-management portion of the MVP.
 - `e1e4ade` Merge pull request #2 from ShoaibShuja/feat/auth-database-foundation
 - `224b365` feat: add secure admin record data layer
 - `fa0571b` feat: add admin record management screens
+- `038504e` test: cover admin record contracts
 
 ## Recommended next prompt
 
