@@ -8,6 +8,7 @@ export const getOptionalUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims.sub) return null;
+  return data.claims;
 });
