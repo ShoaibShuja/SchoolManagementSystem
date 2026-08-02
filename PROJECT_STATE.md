@@ -2,15 +2,15 @@
 
 ## Current phase
 
-Core MVP attendance and role dashboards are implemented on the feature branch. A linked Supabase project is still required to apply migrations and verify runtime RLS, Storage, and attendance behavior.
+MVP stabilization is complete locally on the release branch. The source is demonstrable with safe fictional seed data, but release approval is blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
 
 ## Current branch
 
-`feat/mvp-attendance-dashboards`
+`release/mvp`
 
 ## Last completed prompt
 
-Complete the core MVP by implementing attendance and useful dashboards for all four roles.
+Stabilize the current system as a demonstrable MVP.
 
 ## Completed work
 
@@ -33,15 +33,17 @@ Complete the core MVP by implementing attendance and useful dashboards for all f
 - Added teacher-scoped attendance marking, admin attendance review/correction, student self-only attendance, and parent linked-child attendance.
 - Added role-specific teacher, student, and parent dashboards, plus admin pending-attendance counts.
 - Added academic-year date validation and an atomic attendance save function that validates assignment, roster membership, and duplicates.
+- Audited protected routes, server guards, RLS policy presence, seed-data safety, validation contracts, filtering, duplicate protection, and destructive-record safeguards.
+- Repaired the demonstration seed so its teacher satisfies the required record fields and added fictional attendance examples without usable credentials or personal data.
+- Added release contract checks for seed safety, role-route/API guards, RLS policy presence, and server-only service-role usage.
 
 ## In-progress work
 
-- Apply migrations through `20260802000600_add_attendance_workflows.sql` in the configured Supabase project.
-- Exercise admin records, RLS policies, Storage policies, and invitation email flows against the linked project.
+- Apply migrations through `20260802000600_add_attendance_workflows.sql` in the configured Supabase project and execute the live release checklist in `docs/MVP_AUDIT.md`.
 
 ## Remaining work
 
-- Apply and verify the existing migrations in a Supabase project before relying on database-backed UI.
+- Approve the MVP only after real-project migration, Auth, role-isolation, direct-route, attendance, and private-Storage checks pass.
 - Build beta academic, timetable, gradebook, report-card, announcement, portal, and fee modules.
 - Add database, integration, end-to-end, accessibility, and deployment test coverage.
 
@@ -51,7 +53,7 @@ Complete the core MVP by implementing attendance and useful dashboards for all f
 - Supabase Auth owns credentials. The service-role key is server-only and reserved for future privileged provisioning.
 - Server Components remain the default for initial reads. Client components are limited to interactive UI and use TanStack Query when client server-state is needed.
 - The two future school brand colors are centralized as `--brand` and `--accent`; components use semantic tokens only.
-- Placeholder role pages intentionally contain no academic or personal data until profile roles and RLS exist.
+- Dashboard placeholders are explicitly labelled whenever timetable, fees, or announcements have no implemented data source.
 - `profiles.id` references `auth.users.id`; passwords and password hashes are never stored in application tables.
 - RLS authorization uses private security-definer helper functions, role/profile links, teacher assignments, and parent-child links. The service-role key is limited to invitation and bootstrap code.
 - Storage buckets are private. Persisted report cards are admin-only; future student and parent report downloads are generated through protected server routes.
@@ -81,7 +83,7 @@ Complete the core MVP by implementing attendance and useful dashboards for all f
 - `/admin/students`
 - `/admin/teachers`
 - `/admin/classes`
-- `/admin/attendance` (truthful placeholder until daily marking is delivered)
+- `/admin/attendance`
 - `/teacher/attendance`
 - `/student/attendance`
 - `/parent/attendance`
@@ -103,12 +105,12 @@ Complete the core MVP by implementing attendance and useful dashboards for all f
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
 - Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
-- Migration, RLS, invitation, account-link, capacity, and attendance behavior cannot be executed in this Windows runtime without a linked Supabase project.
+- Migration, RLS, invitation, account-link, capacity, attendance, direct-route, and Storage behavior cannot be executed in this Windows runtime without a linked Supabase project. This prevents a release or tag claim.
 - `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
 
 ## Test and build status
 
-2026-08-02: `npm run lint`, `npm run test` (10 tests), `npm run typecheck`, and `npm run build` passed. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS tests remain pending a Supabase database environment.
+2026-08-02: `npm run lint`, `npm run test` (13 tests), `npm run typecheck`, and `npm run build` passed. Static release tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, forms, and attendance/enrollment constraints. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
 
 ## Latest important commits
 
@@ -127,7 +129,9 @@ Complete the core MVP by implementing attendance and useful dashboards for all f
 - `b828b23` fix: enforce filtered enrollment records
 - `8fbe45d` feat: add secure attendance data workflows
 - `71c1063` feat: add role attendance and dashboard screens
+- `8007c43` docs: document attendance dashboards
+- `bd0d6cf` fix: stabilize safe MVP demonstration data
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000600` to a Supabase project, then perform live attendance marking, correction, duplicate, assignment, self-only, parent-link, RLS, and private Storage verification. Next, build timetable and gradebook modules.
+Apply migrations through `20260802000600` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`. If every check passes, merge `release/mvp` and create `v0.1.0-mvp`; then begin timetable and gradebook work on a new feature branch.
