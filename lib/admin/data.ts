@@ -202,5 +202,5 @@ export async function getAdminDashboard() {
     [marked.error, enrolled.error].forEach(unwrapError);
     attendance = { marked: marked.count ?? 0, total: enrolled.count ?? 0 };
   }
-  return { activeStudents: students.count ?? 0, activeTeachers: teachers.count ?? 0, classes: classes.count ?? 0, sections: sections.count ?? 0, academicYear: academicYear.data?.name ?? null, attendance };
+  return { activeStudents: students.count ?? 0, activeTeachers: teachers.count ?? 0, classes: classes.count ?? 0, sections: sections.count ?? 0, academicYear: academicYear.data?.name ?? null, attendance, pendingAttendance: attendance ? Math.max(0, attendance.total - attendance.marked) : null };
 }
