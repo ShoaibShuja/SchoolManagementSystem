@@ -18,8 +18,8 @@ export async function linkSchoolRecordAccount(input: AccountLinkInput) {
   const profileId = await provisionInvitedProfile(admin, siteUrl, { email: input.email, firstName: input.firstName, lastName: input.lastName, role: input.role });
   const supabase = await createClient();
   const table = input.role === "student" ? "students" : input.role === "teacher" ? "teachers" : "parents";
-  const { error } = await supabase.from(table).update({ profile_id: profileId }).eq("id", input.entityId).is("profile_id", null);
-  if (error) {
+  const { data: linkedRecord, error } = await supabase.from(table).update({ profile_id: profileId }).eq("id", input.entityId).is("profile_id", null).select("id").maybeSingle();
+  if (error || !linkedRecord) {
     await admin.from("profiles").delete().eq("id", profileId);
     await admin.auth.admin.deleteUser(profileId);
     throw new AdminRecordError("The account invitation was cancelled because the school record could not be linked.");

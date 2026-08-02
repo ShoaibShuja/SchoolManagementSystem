@@ -64,8 +64,12 @@ function studentFromRow(row: Record<string, unknown>, academicYearId?: string): 
 export async function listStudents(options: ListOptions): Promise<PaginatedResult<StudentListItem>> {
   const supabase = await adminClient();
   const from = (options.page - 1) * options.pageSize;
-  let query = supabase.from("students").select("id, profile_id, admission_number, first_name, last_name, enrolled_on, status, student_enrollments!left(id, academic_year_id, section_id, status, sections!left(id, name, classes!left(id, name)), parent_student_links!left(is_primary_contact, relationship, parents!left(id, first_name, last_name, phone, email))", { count: "exact" });
-  if (options.query) query = query.or(`first_name.ilike.%${options.query}%,last_name.ilike.%${options.query}%,admission_number.ilike.%${options.query}%`);
+  const enrollmentJoin = options.sectionId || options.academicYearId ? "!inner" : "!left";
+  let query = supabase.from("students").select(`id, profile_id, admission_number, first_name, last_name, enrolled_on, status, student_enrollments${enrollmentJoin}(id, academic_year_id, section_id, status, sections!left(id, name, classes!left(id, name))), parent_student_links!left(is_primary_contact, relationship, parents!left(id, first_name, last_name, phone, email))`, { count: "exact" });
+  if (options.query) {
+    const term = options.query.replace(/[%,()]/g, " ");
+    query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,admission_number.ilike.%${term}%`);
+  }
   if (options.status) query = query.eq("status", options.status);
   if (options.sectionId) query = query.eq("student_enrollments.section_id", options.sectionId);
   if (options.academicYearId) query = query.eq("student_enrollments.academic_year_id", options.academicYearId);
@@ -90,12 +94,17 @@ export async function createStudent(values: StudentInput) {
   unwrapError(studentError);
   if (!student) throw new AdminRecordError("The student record could not be created.");
   const { data: guardian, error: guardianError } = await supabase.from("parents").insert({ first_name: values.guardianFirstName, last_name: values.guardianLastName, phone: values.guardianPhone, email: values.guardianEmail }).select("id").single();
-  if (guardianError || !guardian) { await supabase.from("students").delete().eq("id", student.id); unwrapError(guardianError); }
+  if (guardianError || !guardian) { await supabase.from("students").delete().eq("id", student.id); if (!guardianError) throw new AdminRecordError("The guardian record could not be created."); unwrapError(guardianError); }
   const { error: linkError } = await supabase.from("parent_student_links").insert({ parent_id: guardian!.id, student_id: student.id, relationship: values.guardianRelationship, is_primary_contact: true });
   if (linkError) { await supabase.from("parents").delete().eq("id", guardian!.id); await supabase.from("students").delete().eq("id", student.id); unwrapError(linkError); }
   if (values.academicYearId && values.sectionId) {
     const { error: enrollmentError } = await supabase.from("student_enrollments").insert({ student_id: student.id, academic_year_id: values.academicYearId, section_id: values.sectionId, enrolled_on: values.enrolledOn, status: "active" });
-    unwrapError(enrollmentError);
+    if (enrollmentError) {
+      await supabase.from("parent_student_links").delete().eq("parent_id", guardian!.id).eq("student_id", student.id);
+      await supabase.from("parents").delete().eq("id", guardian!.id);
+      await supabase.from("students").delete().eq("id", student.id);
+      unwrapError(enrollmentError);
+    }
   }
   return student.id;
 }
@@ -112,7 +121,7 @@ export async function updateStudent(id: string, values: StudentInput) {
     unwrapError(linkError);
   } else {
     const { data: guardian, error: guardianError } = await supabase.from("parents").insert({ first_name: values.guardianFirstName, last_name: values.guardianLastName, phone: values.guardianPhone, email: values.guardianEmail }).select("id").single();
-    unwrapError(guardianError);
+    if (guardianError || !guardian) { if (!guardianError) throw new AdminRecordError("The guardian record could not be created."); unwrapError(guardianError); }
     const { error: linkError } = await supabase.from("parent_student_links").insert({ parent_id: guardian!.id, student_id: id, relationship: values.guardianRelationship, is_primary_contact: true });
     unwrapError(linkError);
   }
