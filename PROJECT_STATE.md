@@ -84,7 +84,7 @@ Migration execution and RLS test execution require a supported Supabase CLI host
 
 ## Test and build status
 
-2026-08-02: `npm run lint`, `npm run typecheck`, and `npm run build` passed. The pgTAP database test file was added but could not run without a Supabase database environment.
+2026-08-02: `npm run lint`, `npm run typecheck`, and `npm run build` passed. The initial-admin command safely rejects missing required environment values. The pgTAP database test file was added but could not run without a Supabase database environment.
 
 ## Latest important commits
 
@@ -93,6 +93,7 @@ Migration execution and RLS test execution require a supported Supabase CLI host
 - `d98d1a1` feat: add normalized school database schema
 - `440bf35` feat: add row level security policies
 - `7202191` feat: integrate role based authentication
+- `a5ace2a` fix: make initial admin bootstrap executable
 
 ## Recommended next prompt
 
