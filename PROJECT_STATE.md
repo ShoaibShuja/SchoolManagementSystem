@@ -130,6 +130,7 @@ Stabilize the current system as a demonstrable MVP.
 - `8fbe45d` feat: add secure attendance data workflows
 - `71c1063` feat: add role attendance and dashboard screens
 - `8007c43` docs: document attendance dashboards
+- `bd0d6cf` fix: stabilize safe MVP demonstration data
 
 ## Recommended next prompt
 
