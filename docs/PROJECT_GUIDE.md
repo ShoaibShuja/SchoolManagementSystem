@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The core MVP is complete in source code. Administrators can manage records and review or correct attendance; teachers can mark assigned sections; students and parents can view only their allowed attendance. Results, fees, timetables, and announcements are not available yet.
+The core MVP is complete in source code and has passed local tests, linting, type checking, and a production build. Administrators can manage records and review or correct attendance; teachers can mark assigned sections; students and parents can view only their allowed attendance. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Results, fees, timetables, and announcements are not available yet.
 
 ## Main user roles
 
@@ -67,6 +67,18 @@ For local development, `supabase/seed.sql` creates clearly labelled example iden
 
 RLS is enabled for every public application table. Admins manage records; teachers are limited to assigned sections and subjects; students see only their own records; parents see only linked children. The application also checks roles on the server before rendering protected routes.
 
+## Demonstration setup
+
+Use a separate Supabase development or demonstration project, never the production project.
+
+1. Apply every migration through `20260802000600_add_attendance_workflows.sql` in order.
+2. Optionally run `supabase/seed.sql` for clearly fictional `example.invalid` school records and attendance samples. It includes no usable password or real personal data.
+3. Configure environment variables and run `npm run bootstrap:admin` to create the first administrator through Supabase Auth.
+4. Sign in as the administrator, then create or invite separate test accounts for each role. Link only test student and parent profiles to the seed records.
+5. Use the checklist in `MVP_AUDIT.md` before demonstrating or approving the release.
+
+Do not run the seed in production, and do not replace the fictional examples with real personal data for a demo.
+
 ## How to change branding and colors
 
 The future primary and accent school colors are centralized in `app/globals.css` as `--brand` and `--accent`. Do not replace colors inside individual components. The temporary values are neutral until the school supplies final colors.
@@ -117,7 +129,7 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 
 ## Known limitations
 
-- Database migrations and policies must still be applied and exercised in a real Supabase environment.
+- The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
 - Attendance, RLS, and save-function behavior need live Supabase verification before production use.
 - Results, fees, timetables, and announcements are not implemented yet.
