@@ -11,10 +11,11 @@ test("academic forms reject reversed dates and timetable time ranges", () => {
   assert.equal(timetableSchema.safeParse({ academicYearId: ids.year, assignmentId: ids.assignment, dayOfWeek: 1, startTime: "11:00", endTime: "09:00", room: "A1" }).success, false);
 });
 
-test("academic migration protects terms, assignments, and timetable conflicts", async () => {
-  const [migration, rls] = await Promise.all([
+test("academic migration protects terms, assignments, timetable conflicts, and role scope", async () => {
+  const [migration, rls, helpers] = await Promise.all([
     readFile(new URL("../../supabase/migrations/20260802000700_strengthen_academics_and_timetables.sql", import.meta.url), "utf8"),
     readFile(new URL("../../supabase/migrations/20260802000300_enable_row_level_security.sql", import.meta.url), "utf8"),
+    readFile(new URL("../../supabase/migrations/20260802000200_add_integrity_and_security_helpers.sql", import.meta.url), "utf8"),
   ]);
   assert.match(migration, /terms_no_overlap/);
   assert.match(migration, /subjects_active_code_unique_idx/);
@@ -25,4 +26,7 @@ test("academic migration protects terms, assignments, and timetable conflicts", 
   assert.match(rls, /teacher_assignments_read_scoped/);
   assert.match(rls, /timetable_read_scoped/);
   assert.match(rls, /can_view_section\(section_id, academic_year_id\)/);
+  assert.match(helpers, /private\.has_teacher_assignment\(requested_section_id, null, requested_academic_year_id\)/);
+  assert.match(helpers, /s\.profile_id = \(select auth\.uid\(\)\)/);
+  assert.match(helpers, /p\.profile_id = \(select auth\.uid\(\)\)/);
 });
