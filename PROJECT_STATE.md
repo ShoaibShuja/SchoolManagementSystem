@@ -2,7 +2,7 @@
 
 ## Current phase
 
-MVP stabilization is complete locally and `release/mvp` has been merged. The next feature branch has been created for academic and timetable work, but production approval remains blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
+MVP stabilization and the academic structure/timetable phase are complete locally. `release/mvp` remains merged and this branch now carries the next feature group. Production approval remains blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
 
 ## Current branch
 
@@ -10,7 +10,7 @@ MVP stabilization is complete locally and `release/mvp` has been merged. The nex
 
 ## Last completed prompt
 
-Stabilize the current system as a demonstrable MVP.
+Implement the academic structure and timetable phase.
 
 ## Completed work
 
@@ -36,16 +36,20 @@ Stabilize the current system as a demonstrable MVP.
 - Audited protected routes, server guards, RLS policy presence, seed-data safety, validation contracts, filtering, duplicate protection, and destructive-record safeguards.
 - Repaired the demonstration seed so its teacher satisfies the required record fields and added fictional attendance examples without usable credentials or personal data.
 - Added release contract checks for seed safety, role-route/API guards, RLS policy presence, and server-only service-role usage.
+- Added administrator management for academic years, non-overlapping terms, active subjects, teaching assignments, and weekly timetables.
+- Added migration-backed term containment/overlap rules, active-only subject-code uniqueness, timetable assignment consistency, room overlap protection, and useful section/teacher/room conflict messages.
+- Added teacher workload and timetable views plus student self and parent linked-child timetable views. All read-only scope remains derived from existing assignments and current enrollments.
+- Added enrollment history review without a destructive reassignment path, Zod contracts for academic forms, protected academic APIs, and academic migration/RLS contract coverage.
 
 ## In-progress work
 
 - Complete the linked-Supabase release checklist in `docs/MVP_AUDIT.md` before declaring the merged MVP release-ready.
-- Academic and timetable implementation has not started on `feat/academics-timetable`.
+- Apply the new academic/timetable migration in a linked Supabase project and execute the live role-isolation and conflict checks.
 
 ## Remaining work
 
 - Approve the MVP only after real-project migration, Auth, role-isolation, direct-route, attendance, and private-Storage checks pass.
-- Build beta academic, timetable, gradebook, report-card, announcement, portal, and fee modules.
+- Build the gradebook/results, report-card, announcement, and fee modules.
 - Add database, integration, end-to-end, accessibility, and deployment test coverage.
 
 ## Important architecture decisions
@@ -62,6 +66,8 @@ Stabilize the current system as a demonstrable MVP.
 - Student account invitations are optional. The school record is created or edited independently; an email invitation only links an Auth profile when requested.
 - A section does not have a homeroom-teacher field because the approved normalized schema models teacher assignments by subject and academic year. Capacity is enforced per active academic-year enrollment.
 - Attendance saves use a security-invoker database function. Teachers need a current section assignment; repeated saves correct an existing record rather than duplicating it.
+- Academic years and terms are retained as historical records. A term must stay inside its year and cannot overlap another term. An academic year cannot be shortened to exclude existing term or enrollment dates.
+- Teacher assignments are year-scoped and are the authority for teacher timetable access. Timetable entries inherit teacher, section, and subject context from an assignment and reject section, teacher, and named-room collisions.
 
 ## Database migrations
 
@@ -71,6 +77,7 @@ Stabilize the current system as a demonstrable MVP.
 - `20260802000400_create_private_storage_policies.sql`
 - `20260802000500_support_admin_record_management.sql`
 - `20260802000600_add_attendance_workflows.sql`
+- `20260802000700_strengthen_academics_and_timetables.sql`
 
 ## Implemented routes
 
@@ -85,9 +92,13 @@ Stabilize the current system as a demonstrable MVP.
 - `/admin/teachers`
 - `/admin/classes`
 - `/admin/attendance`
+- `/admin/academics`
 - `/teacher/attendance`
+- `/teacher/academics`
 - `/student/attendance`
+- `/student/timetable`
 - `/parent/attendance`
+- `/parent/timetable`
 - `/dashboard`
 - `/auth/callback`
 - `/auth/signout`
@@ -102,7 +113,7 @@ Stabilize the current system as a demonstrable MVP.
 
 ## Known issues
 
-- Migrations and RLS policies could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
+- Migrations and RLS policies through `20260802000700` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
 - Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
@@ -111,7 +122,7 @@ Stabilize the current system as a demonstrable MVP.
 
 ## Test and build status
 
-2026-08-02: `npm run lint`, `npm run test` (13 tests), `npm run typecheck`, and `npm run build` passed. Static release tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, forms, and attendance/enrollment constraints. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
+2026-08-02: `npm run lint`, `npm run test` (15 tests), `npm run typecheck`, and `npm run build` passed. Static release tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, forms, attendance/enrollment constraints, and academic/timetable validation. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
 
 ## Latest important commits
 
@@ -136,7 +147,8 @@ Stabilize the current system as a demonstrable MVP.
 - `c04a5b9` docs: record release seed stabilization
 - `e3a1047` Merge pull request #5 from ShoaibShuja/release/mvp
 - `4f2b535` docs: refresh continuation state
+- `5eb5145` feat: add academic structure and timetable workflows
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000600` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement academic-year, term, teacher-assignment, and timetable management on `feat/academics-timetable` without weakening the existing attendance/RLS boundaries.
+Apply migrations through `20260802000700` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`, including academic term, assignment, and timetable conflict checks. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement gradebooks and results without weakening the existing attendance/RLS boundaries.
