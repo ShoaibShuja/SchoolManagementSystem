@@ -4,7 +4,7 @@ import { canWriteAdminRecords } from "../../lib/admin/authorization";
 import { matchesStudentFilter, matchesTeacherFilter } from "../../lib/admin/filters";
 
 const student = { id: "student-1", admissionNumber: "S-1001", firstName: "Amina", lastName: "Rahimi", status: "active" as const, enrolledOn: "2026-03-21", hasAccount: false, section: { id: "section-a", name: "A", className: "Grade 1" }, guardian: null };
-const teacher = { id: "teacher-1", employeeNumber: "T-1001", firstName: "Laila", lastName: "Ahmadi", phone: null, email: "laila@example.com", qualification: null, employmentStartedOn: "2026-03-21", employmentEndedOn: null, status: "on_leave" as const, hasAccount: false };
+const teacher = { id: "teacher-1", employeeNumber: "T-1001", firstName: "Laila", lastName: "Ahmadi", phone: null, email: "laila@example.com", qualification: null, profileId: null, employmentStartedOn: "2026-03-21", employmentEndedOn: null, status: "on_leave" as const, hasAccount: false };
 
 test("student search and filters match the requested fields", () => {
   assert.equal(matchesStudentFilter(student, "rahimi", "active", "section-a"), true);

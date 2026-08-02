@@ -27,6 +27,7 @@ Build the administrative record-management portion of the MVP.
 - Added secure, paginated admin management for students, teachers, classes, and sections, with responsive tables, detail sheets, confirmation dialogs, and clear empty/error states.
 - Added guardian details, active/inactive student status changes, optional secure account invitations, and account-status labels that distinguish school records from activated logins.
 - Added admin dashboard operational counts and a truthful current-day attendance progress count when a current academic year exists.
+- Added validated private Storage profile-image upload for linked student accounts; the path is checked against the linked profile before it is saved.
 - Added centralized admin DTOs, Zod schemas, data-access functions, protected API routes, TanStack Query table mutations, and focused unit/contract tests.
 - Added a migration that gives teacher records independent identity/contact fields, adds enforced section capacity, and performs section transfers atomically.
 
@@ -95,7 +96,7 @@ Build the administrative record-management portion of the MVP.
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
 - Daily teacher attendance marking and its full admin summary screen are not implemented. The dashboard only counts existing records for today.
-- Profile-photo upload UI is deferred even though the private Storage bucket and policies are ready; it should be added only after runtime Storage policy verification.
+- Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
 - Migration, RLS, invitation, account-link, and capacity behavior cannot be executed in this Windows runtime without a linked Supabase project.
 - `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
 

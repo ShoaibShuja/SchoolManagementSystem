@@ -77,6 +77,7 @@ The future primary and accent school colors are centralized in `app/globals.css`
 - Administrators can search, filter, create, edit, and view teacher and basic staff records. Employment details are record-keeping only; there is no payroll or HR module.
 - Administrators can create, edit, and remove classes and sections. Sections enforce their configured capacity for active enrollments. Deletion is prevented when a record is still in use.
 - A school record does not need a login account. When an administrator supplies a student or teacher email, the system uses the server-only invitation process to create an Auth profile and link it to that record. Never use this screen to share or store passwords.
+- Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
 
 ## Admin record management
 
@@ -93,7 +94,7 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 ## Known limitations
 
 - Database migrations and policies must still be applied and exercised in a real Supabase environment.
-- Profile-photo upload UI is deferred pending live private-Storage verification, even though the bucket and policies are ready.
+- Profile-image uploads need live private-Storage verification before production use.
 - Daily teacher attendance marking and complete admin attendance summaries are not implemented; the dashboard only reports stored attendance records for today.
 - Results, fees, timetables, and announcements are not implemented yet.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.

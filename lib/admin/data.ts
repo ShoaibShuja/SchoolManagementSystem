@@ -145,7 +145,7 @@ export async function listTeachers(options: ListOptions): Promise<PaginatedResul
   if (options.status) query = query.eq("status", options.status);
   const { data, error, count } = await query.order("first_name").order("last_name").range(from, from + options.pageSize - 1);
   unwrapError(error);
-  return { items: (data ?? []).map((teacher) => ({ id: teacher.id, employeeNumber: teacher.employee_number, firstName: teacher.first_name, lastName: teacher.last_name, phone: teacher.phone, email: teacher.email, qualification: teacher.qualification, employmentStartedOn: teacher.employment_started_on, employmentEndedOn: teacher.employment_ended_on, status: teacher.status as TeacherListItem["status"], hasAccount: Boolean(teacher.profile_id) })), total: count ?? 0, page: options.page, pageSize: options.pageSize };
+  return { items: (data ?? []).map((teacher) => ({ id: teacher.id, employeeNumber: teacher.employee_number, firstName: teacher.first_name, lastName: teacher.last_name, phone: teacher.phone, email: teacher.email, qualification: teacher.qualification, profileId: teacher.profile_id, employmentStartedOn: teacher.employment_started_on, employmentEndedOn: teacher.employment_ended_on, status: teacher.status as TeacherListItem["status"], hasAccount: Boolean(teacher.profile_id) })), total: count ?? 0, page: options.page, pageSize: options.pageSize };
 }
 
 export async function getTeacher(id: string): Promise<TeacherListItem | null> {
@@ -153,7 +153,7 @@ export async function getTeacher(id: string): Promise<TeacherListItem | null> {
   const { data, error } = await supabase.from("teachers").select("id, profile_id, employee_number, first_name, last_name, phone, email, qualification, employment_started_on, employment_ended_on, status").eq("id", id).maybeSingle();
   unwrapError(error);
   if (!data) return null;
-  return { id: data.id, employeeNumber: data.employee_number, firstName: data.first_name, lastName: data.last_name, phone: data.phone, email: data.email, qualification: data.qualification, employmentStartedOn: data.employment_started_on, employmentEndedOn: data.employment_ended_on, status: data.status as TeacherListItem["status"], hasAccount: Boolean(data.profile_id) };
+  return { id: data.id, employeeNumber: data.employee_number, firstName: data.first_name, lastName: data.last_name, phone: data.phone, email: data.email, qualification: data.qualification, profileId: data.profile_id, employmentStartedOn: data.employment_started_on, employmentEndedOn: data.employment_ended_on, status: data.status as TeacherListItem["status"], hasAccount: Boolean(data.profile_id) };
 }
 
 export async function createTeacher(values: TeacherInput) {

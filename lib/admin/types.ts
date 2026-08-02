@@ -29,6 +29,7 @@ export type TeacherListItem = {
   phone: string | null;
   email: string | null;
   qualification: string | null;
+  profileId: string | null;
   employmentStartedOn: string;
   employmentEndedOn: string | null;
   status: TeacherStatus;
