@@ -2,11 +2,11 @@
 
 ## Current phase
 
-MVP stabilization is complete locally on the release branch. The source is demonstrable with safe fictional seed data, but release approval is blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
+MVP stabilization is complete locally and `release/mvp` has been merged. The next feature branch has been created for academic and timetable work, but production approval remains blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
 
 ## Current branch
 
-`release/mvp`
+`feat/academics-timetable`
 
 ## Last completed prompt
 
@@ -39,7 +39,8 @@ Stabilize the current system as a demonstrable MVP.
 
 ## In-progress work
 
-- Apply migrations through `20260802000600_add_attendance_workflows.sql` in the configured Supabase project and execute the live release checklist in `docs/MVP_AUDIT.md`.
+- Complete the linked-Supabase release checklist in `docs/MVP_AUDIT.md` before declaring the merged MVP release-ready.
+- Academic and timetable implementation has not started on `feat/academics-timetable`.
 
 ## Remaining work
 
@@ -133,7 +134,9 @@ Stabilize the current system as a demonstrable MVP.
 - `bd0d6cf` fix: stabilize safe MVP demonstration data
 - `7274b85` docs: record MVP stabilization audit
 - `c04a5b9` docs: record release seed stabilization
+- `e3a1047` Merge pull request #5 from ShoaibShuja/release/mvp
+- `4f2b535` docs: refresh continuation state
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000600` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`. If every check passes, merge `release/mvp` and create `v0.1.0-mvp`; then begin timetable and gradebook work on a new feature branch.
+Apply migrations through `20260802000600` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement academic-year, term, teacher-assignment, and timetable management on `feat/academics-timetable` without weakening the existing attendance/RLS boundaries.
