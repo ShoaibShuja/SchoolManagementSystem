@@ -131,6 +131,8 @@ Stabilize the current system as a demonstrable MVP.
 - `71c1063` feat: add role attendance and dashboard screens
 - `8007c43` docs: document attendance dashboards
 - `bd0d6cf` fix: stabilize safe MVP demonstration data
+- `7274b85` docs: record MVP stabilization audit
+- `c04a5b9` docs: record release seed stabilization
 
 ## Recommended next prompt
 
