@@ -21,7 +21,7 @@ function unwrapError(error: { message: string; code?: string } | null) {
   if (!error) return;
   if (error.code === "23505") throw new AdminRecordError("A record with that unique number or assignment already exists.", error.code);
   if (error.code === "23503") throw new AdminRecordError("This record is still in use and cannot be removed.", error.code);
-  throw new AdminRecordError(error.message || "The record could not be saved.", error.code);
+  throw new AdminRecordError("The record could not be saved.", error.code);
 }
 
 async function adminClient() {

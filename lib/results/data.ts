@@ -9,7 +9,7 @@ import type { ExamItem, ExamSetup, ExamSubjectItem, Gradebook, GradebookRow, Stu
 
 type ExamInput = z.infer<typeof examSchema>; type ExamSubjectInput = z.infer<typeof examSubjectSchema>; type GradeSaveInput = z.infer<typeof gradeSaveSchema>;
 export class ResultError extends Error {}
-function fail(error: { message: string; code?: string } | null) { if (!error) return; if (error.code === "23505") throw new ResultError("That exam, subject, or grade already exists."); if (error.code === "23503") throw new ResultError("This record is still in use and cannot be removed."); throw new ResultError(error.message || "The result record could not be saved."); }
+function fail(error: { message: string; code?: string } | null) { if (!error) return; if (error.code === "23505") throw new ResultError("That exam, subject, or grade already exists."); if (error.code === "23503") throw new ResultError("This record is still in use and cannot be removed."); throw new ResultError("The result request could not be completed."); }
 const name = (row: { first_name: string; last_name: string }) => `${row.first_name} ${row.last_name}`.trim();
 const asNumber = (value: number | string | null) => value === null ? null : Number(value);
 

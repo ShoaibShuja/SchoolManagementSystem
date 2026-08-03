@@ -2,6 +2,7 @@ import "server-only";
 
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/profile";
+import { logError } from "@/lib/error-logger";
 
 export async function requireAdminApi() {
   const profile = await getCurrentProfile();
@@ -11,6 +12,6 @@ export async function requireAdminApi() {
 }
 
 export function apiError(error: unknown) {
-  const message = error instanceof Error ? error.message : "The request could not be completed.";
-  return NextResponse.json({ error: message }, { status: 400 });
+  logError(error, { operation: "admin-api" });
+  return NextResponse.json({ error: "The request could not be completed." }, { status: 400 });
 }
