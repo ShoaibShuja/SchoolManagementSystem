@@ -6,7 +6,7 @@ Jahan School Management System is a single-school web application for administra
 
 ## Current development phase
 
-The core MVP and the academic/timetable phase are complete in source code and have passed local tests, linting, type checking, and a production build. Administrators can manage records, attendance, academic years, terms, subjects, teacher assignments, and weekly timetables. Teachers, students, and parents have appropriately scoped read-only timetable views. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Results, fees, and announcements are not available yet.
+The core MVP, academic/timetable, and assessment phases are complete in source code and have passed local tests, linting, and type checking. Administrators can manage exams, subject papers, and publication; teachers enter grades for assigned papers; students and parents can see only published results and their authorized PDF report cards. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Fees and announcements are not available yet.
 
 ## Main user roles
 
@@ -20,6 +20,7 @@ The core MVP and the academic/timetable phase are complete in source code and ha
 - `app/` contains pages, route groups, and global UI states.
 - `components/admin/` contains dashboard, student, teacher, class, section, and form-dialog interfaces.
 - `components/academics/` contains academic management and mobile-friendly weekly timetable views.
+- `components/results/` contains exam setup, grade-entry, results, and PDF report-card interfaces.
 - `components/` contains reusable interface pieces, forms, and the application shell.
 - `lib/admin/` contains server-only data access, API guards, Zod schemas, DTOs, filters, and account-linking logic.
 - `app/api/admin/` contains protected endpoints used by interactive admin tables.
@@ -27,6 +28,7 @@ The core MVP and the academic/timetable phase are complete in source code and ha
 - `components/attendance/` contains the mobile-friendly marking workflow, summaries, and role dashboards.
 - `lib/attendance/` contains attendance DTOs, schemas, data access, API guards, and summary helpers.
 - `lib/academics/` contains academic/timetable DTOs, Zod schemas, server-only data access, and scoped portal queries.
+- `lib/results/` contains shared calculations, gradebook schemas, server-only result access, and DTOs used by the screen and PDF.
 - `docs/` contains owner-facing project documentation.
 - `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
 - `scripts/` contains the server-only initial-admin bootstrap command.
@@ -73,7 +75,7 @@ RLS is enabled for every public application table. Admins manage records; teache
 
 Use a separate Supabase development or demonstration project, never the production project.
 
-1. Apply every migration through `20260802000700_strengthen_academics_and_timetables.sql` in order.
+1. Apply every migration through `20260802000800_add_exam_gradebook_and_publication_workflows.sql` in order.
 2. Optionally run `supabase/seed.sql` for clearly fictional `example.invalid` school records and attendance samples. It includes no usable password or real personal data.
 3. Configure environment variables and run `npm run bootstrap:admin` to create the first administrator through Supabase Auth.
 4. Sign in as the administrator, then create or invite separate test accounts for each role. Link only test student and parent profiles to the seed records.
@@ -97,6 +99,7 @@ The future primary and accent school colors are centralized in `app/globals.css`
 - Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
 - Administrators use **Academic setup** to manage the school calendar, terms, active subjects, teacher assignments, enrollment history review, and the weekly timetable.
 - Teachers see only their assigned subjects, sections, scheduled lesson count, and weekly timetable. Students see the timetable for their current section. Parents see timetables for linked children only.
+- Administrators manage assessment setup and publish complete results. Teachers have only their assigned gradebooks. Students and parents see published results only, with a private report-card download.
 
 ## Attendance manual
 
@@ -150,6 +153,29 @@ The future primary and accent school colors are centralized in `app/globals.css`
 4. Timetables are shown as weekday groups instead of a dense grid, which also works well on mobile screens.
 5. To adjust a student’s current placement, use the student record transfer flow. The enrollment review is read-only so historical records are not accidentally reassigned.
 
+## Exams, gradebooks, and report cards
+
+### Exam setup and publication
+
+1. Open **Exams and results** as an administrator. Create an exam with its term, first and last exam dates, and a draft, open, or closed status.
+2. Add each subject paper with its section, subject, date, maximum marks, and optional passing mark. The date must fall in the selected term, and passing marks cannot exceed maximum marks.
+3. Teachers can enter grades while the exam is draft or open. Administrators should publish only after every enrolled student has a grade, absence, or exemption for each paper.
+4. Publishing makes results visible to the related student and parent accounts, and locks all grade changes. Draft and open results remain private to permitted staff.
+
+### Teacher grade entry
+
+1. Open **Gradebooks**. Only papers that match your teacher assignment are displayed.
+2. Enter a mark from zero to the paper maximum, or select **Absent** or **Exempt**. Add a short remark if useful.
+3. Select **Save draft grades**. The latest editor and prior changes are retained for audit purposes.
+4. Published and closed gradebooks are read-only. Ask an administrator to resolve an issue before publication.
+
+### Student, parent, and report-card access
+
+1. Students open **Results** to see their own published results. Parents use **Results** and select a linked child when there is more than one.
+2. Each result lists subject marks, maximums, grades, pass/fail status, total, average, and attendance where records exist.
+3. Use **Download report card** to create a private PDF. The filename includes the admission number and exam name; it includes school identity, student and class details, term, marks, totals, attendance, generated date, and signature placeholders.
+4. Result calculations use one shared rule set for the screen and PDF. Missing draft marks are shown as missing; publication prevents incomplete result sets.
+
 ## Deployment overview
 
 The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
@@ -158,6 +184,6 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 
 - The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
-- Attendance, academic/timetable RLS, and timetable conflict behavior need live Supabase verification before production use.
-- Gradebooks/results, report cards, fees, and announcements are not implemented yet.
+- Attendance, academic/timetable, gradebook, publication, and report-card access behavior need live Supabase verification before production use.
+- Fees and announcements are not implemented yet.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.
