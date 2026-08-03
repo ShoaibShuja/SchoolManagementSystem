@@ -2,15 +2,15 @@
 
 ## Current phase
 
-MVP stabilization, academic/timetable, and examination/report-card source implementation are complete locally. `release/mvp` remains merged. Production approval remains blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, report-card access, and Storage policies.
+MVP stabilization, academic/timetable, examinations, announcements, and read-only portal source implementation are complete locally. Production approval remains blocked until linked Supabase checks pass.
 
 ## Current branch
 
-`feat/exams-report-cards`
+`feat/portals-announcements`
 
 ## Last completed prompt
 
-Implement examinations, grade entry, result calculation, and report-card generation.
+Complete the student and parent portals and implement announcement management.
 
 ## Completed work
 
@@ -44,6 +44,7 @@ Implement examinations, grade entry, result calculation, and report-card generat
 - Added assignment-scoped teacher gradebooks, atomic grade saves, marks validation, audit history, published-result locks, and full-roster publication checks.
 - Added one shared deterministic result-calculation module for screen and PDF data, including absence, exemption, missing marks, totals, averages, grades, and pass/fail status.
 - Added student self-only and parent linked-child published-result views plus protected on-demand PDF report cards generated with `@react-pdf/renderer`.
+- Added secure announcements with role, class, section, and academic-year targets; teacher assigned-section targeting; publication/expiry filtering; and read-only student/parent portal dashboards.
 
 ## In-progress work
 

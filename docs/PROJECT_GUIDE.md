@@ -176,6 +176,14 @@ The future primary and accent school colors are centralized in `app/globals.css`
 3. Use **Download report card** to create a private PDF. The filename includes the admission number and exam name; it includes school identity, student and class details, term, marks, totals, attendance, generated date, and signature placeholders.
 4. Result calculations use one shared rule set for the screen and PDF. Missing draft marks are shown as missing; publication prevents incomplete result sets.
 
+## Announcements and portals
+
+- Admins can create, edit, publish, return to draft, and archive announcements. They may target all users, roles, classes, sections, or academic years.
+- Teachers can manage only their own announcements and may target only their assigned sections. The database enforces this scope.
+- Students and parents see only published, unexpired announcements that match their role or linked academic records. Parent academic information is read-only.
+- Student and parent dashboards provide concise links to timetable, attendance, results/report cards, announcements, and a fee-record placeholder.
+- Optional announcement email uses server-only `RESEND_API_KEY` and `ANNOUNCEMENT_FROM_EMAIL`. Publishing remains available when they are absent; delivery is currently a safe no-op pending approved recipient resolution.
+
 ## Deployment overview
 
 The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
@@ -185,5 +193,5 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 - The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
 - Attendance, academic/timetable, gradebook, publication, and report-card access behavior need live Supabase verification before production use.
-- Fees and announcements are not implemented yet.
+- Fee records remain a placeholder. Optional Resend delivery is intentionally disabled pending approved recipient resolution and live verification.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.
