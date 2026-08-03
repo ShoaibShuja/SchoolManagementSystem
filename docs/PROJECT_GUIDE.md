@@ -1,92 +1,183 @@
 # Jahan School Management System Guide
 
-## Overview
+## What the system does
 
-Jahan is a single-school system for administrators, teachers, students, and parents. It covers records, attendance, academics, timetables, exams/results/report cards, announcements, and manual fee records. Online payments and out-of-scope enterprise modules are not included.
+Jahan is a single-school web system for managing students, teachers, academic setup, attendance, results, timetables, announcements, and manual fee records. It is intentionally limited to one school and does not process online payments.
 
-## Roles and daily use
+## User roles
 
-- **Admin:** manages school records, academic setup, attendance review, exams, announcements, fees, reports, and account invitations.
-- **Teacher:** sees only assigned academic work, marks attendance, enters grades for assigned subject papers, and targets announcements only to assigned sections.
-- **Student:** reads only personal attendance, timetable, published results/report cards, announcements, and fees.
-- **Parent:** reads only linked-child attendance, timetable, published results/report cards, announcements, and fees.
+- **Admin:** manages records, academic setup, fees, announcements, reports, account invitations, and the dashboard.
+- **Teacher:** works only with assigned classes and subjects, attendance, grades, timetables, and assigned-section announcements.
+- **Student:** reads personal attendance, timetable, published results/report cards, announcements, and fees.
+- **Parent:** reads the same information for linked children only.
 
-## Setup and initial administrator
+Roles are fixed. Do not attempt to create custom roles in the database or interface.
 
-1. Create separate Supabase projects for development/preview and production. Never use seed data in production.
-2. Copy `.env.example` to `.env.local` and set the required variables below.
-3. Apply every migration in `supabase/migrations/` in timestamp order, ending with `20260804001200_strengthen_data_integrity.sql`.
-4. Set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` temporarily, then run `npm run bootstrap:admin` once. Remove the bootstrap variables afterwards.
-5. Complete the invitation through Supabase Auth and sign in.
+## Main features
 
-| Variable | Where it belongs | Purpose |
+- Student and teacher records with admissions/employment details and account linking.
+- Classes, sections, academic years, terms, subjects, teacher assignments, and enrollments.
+- Daily attendance, weekly timetables, exams, gradebooks, results, and PDF report cards.
+- Targeted announcements, student and parent portals, manual fees/payments, and an operational admin dashboard.
+
+## Important folders
+
+| Folder or file | Purpose |
+| --- | --- |
+| `app/` | Pages and protected API routes. |
+| `components/` | Reusable interface and domain components. |
+| `lib/` | Authentication, validation, data access, and business rules. |
+| `supabase/migrations/` | Forward-only database schema and security changes. |
+| `supabase/tests/` | Database structural tests for a linked Supabase project. |
+| `tests/` | Automated source and workflow tests. |
+| `scripts/bootstrap-admin.ts` | One-time first-admin invitation script. |
+| `docs/` | Owner guide and release handover checklist. |
+
+## Install locally
+
+1. Install Node.js 20.9 or later and Git.
+2. Clone the repository and enter its folder.
+3. Copy `.env.example` to `.env.local`.
+4. Add the environment values below. Never commit `.env.local`.
+5. Run `npm ci`.
+6. Apply every migration to a development Supabase project before starting the app.
+7. Run `npm run bootstrap:admin` once to create the first administrator invitation.
+8. Run `npm run dev`, then open `http://localhost:3000`.
+
+## Environment variables
+
+| Variable | Required in | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | local, Vercel preview, Vercel production | Project URL; safe for the browser. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | local, Vercel preview, Vercel production | Publishable Supabase key; safe for the browser. |
-| `NEXT_PUBLIC_SITE_URL` | local, Vercel preview, Vercel production | Exact application origin used in invitation redirects. |
-| `SUPABASE_SERVICE_ROLE_KEY` | local and server deployment only | Invitation/bootstrap administration. Never expose it to the browser. |
-| `RESEND_API_KEY`, `ANNOUNCEMENT_FROM_EMAIL` | server deployment only | Reserved for a future approved announcement-email policy. |
+| `NEXT_PUBLIC_SUPABASE_URL` | local, Preview, Production | Supabase project URL. Safe for the browser. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | local, Preview, Production | Supabase publishable key. Safe for the browser. |
+| `NEXT_PUBLIC_SITE_URL` | local, Preview, Production | Exact site origin used for Auth redirects. |
+| `SUPABASE_SERVICE_ROLE_KEY` | local and server deployment only | Creates/administers invitations. Never expose it in browser code. |
+| `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, `ADMIN_LAST_NAME` | bootstrap only | Used once by the initial-admin script; remove afterwards. |
+| `RESEND_API_KEY`, `ANNOUNCEMENT_FROM_EMAIL` | not active | Reserved for a future approved email policy. |
+| `E2E_BASE_URL`, `E2E_*_EMAIL`, `E2E_*_PASSWORD` | test only | Fictional-account browser tests. Never point them at production. |
 
-## Deployment
+## Connect Supabase and create the first admin
 
-Vercel detects this Next.js project through `vercel.json`. GitHub Actions validates every pull request and push to `main` with `npm ci`, lint, typecheck, tests, and a production build. It does not receive secrets.
+1. Create separate Supabase projects for development/preview and production. Do not use demonstration data in production.
+2. In each project, apply all migration files in `supabase/migrations/` in timestamp order, ending with `20260804001200_strengthen_data_integrity.sql`.
+3. Create the private Storage buckets named by the migrations, and confirm their policies applied. Keep `profile-photos`, `school-documents`, and `report-cards` private.
+4. Put the project URL, publishable key, and service-role key in the correct local or Vercel environment. Keep the service-role key server-only.
+5. Temporarily set the three `ADMIN_*` values, run `npm run bootstrap:admin`, then remove those three values.
+6. Accept the Supabase invitation, set the password in Supabase Auth, and sign in.
 
-1. Connect the repository to Vercel. Map preview deployments to the non-production Supabase project and production deployments to a separate production project.
-2. Add the environment variables above separately for Preview and Production. Do not promote a build with preview `NEXT_PUBLIC_` values to production because public Next.js values are embedded during build.
-3. In Supabase Auth, add the exact Vercel preview and production callback URLs: `https://your-domain/auth/callback`. Set the production Site URL to the final domain.
-4. Add the custom domain in Vercel, verify DNS, then add the same HTTPS domain to Supabase Auth redirect URLs before enabling invitations.
-5. Keep `profile-photos`, `school-documents`, and `report-cards` private. The profile-photo bucket allows JPEG, PNG, and WebP up to 5 MB; report cards are generated on demand and are never publicly cached.
-6. Configure Vercel Firewall rate rules for `/api/results/*/report-card` and `/api/admin/accounts`. The application also applies process-local protection, but platform rules are the production control.
+If the script says an administrator already exists, use that account; do not run the bootstrap again.
 
-### Migration promotion
+## Deploy
 
-Apply migrations to development first, then preview/staging, then production. Take a backup before every production migration. Use the Supabase CLI or dashboard migration workflow from a supported machine, verify migration history, and never edit an applied migration. Production corrections must be new forward-only migrations.
+1. Make the repository owner-controlled in GitHub and ensure GitHub Actions is green.
+2. Connect the repository to Vercel. The included `vercel.json` uses `npm ci` and `npm run build`.
+3. Connect Preview to the non-production Supabase project and Production to the production Supabase project. Create a fresh production build after changing any `NEXT_PUBLIC_*` value.
+4. Add the environment variables separately to Preview and Production.
+5. In Supabase Auth, add `https://your-domain/auth/callback` and the corresponding Preview callback URLs. Set the Production Site URL to the final HTTPS domain.
+6. Add the custom domain in Vercel, verify DNS, then confirm the same domain in Supabase Auth.
+7. Enable backups/PITR if offered by the Supabase plan. Configure Vercel Firewall rate limits for `/api/results/*/report-card` and `/api/admin/accounts`.
+8. Complete the smoke test in the handover checklist before announcing the release.
 
-### Smoke test after each deployment
+## Admin manual
 
-Use fictional accounts and data:
+1. Start with **Academics**: create the active academic year, terms, classes, sections, subjects, and teacher assignments.
+2. Add teachers and students. Give each student an admission number and active enrollment. Add guardian details during student creation.
+3. Link a login account only when the person needs portal access. Send invitations through the supported admin workflow.
+4. Review daily attendance and resolve data errors promptly. Teachers mark attendance for their assignments.
+5. Create exams, configure subject papers, review grades, and publish only when complete. Published grades are locked to preserve the result history.
+6. Create fee types and fee records, then record cash/bank/manual payments. Do not enter a payment above the outstanding balance.
+7. Publish announcements to appropriate roles, classes, or sections. Review the dashboard and reports for daily operations.
 
-1. Sign in as each role and confirm its dashboard route.
-2. Confirm a teacher cannot access admin routes or an unassigned attendance roster/gradebook.
-3. Confirm student self-only and parent linked-child-only attendance, fees, results, and report-card access.
-4. Record a manual fee payment, attempt an overpayment, and confirm the balance/status.
-5. Publish a complete exam, verify grades become immutable, and download an authorized report card.
-6. Verify an unauthorized report-card URL fails, a private photo is not public, and a valid owner/admin upload works.
-7. Check Vercel logs for sanitized errors only, GitHub Actions status, and browser use at 320px, 768px, and 1280px.
+## Teacher manual
 
-### Rollback
+1. Sign in and use **Attendance** only for assigned sections and dates.
+2. Use **Grades** only for assigned subject papers. Check maximum marks before saving.
+3. A published exam cannot be altered. Ask an administrator to follow the documented correction process instead of editing result history.
+4. Review the timetable and use **Announcements** only for assigned sections. Teachers cannot manage fees or other administrators' records.
 
-For an application-only failure, redeploy the last healthy Vercel deployment. Database migrations are forward-only: do not restore a database merely to revert code. Create a corrective migration unless data loss or a confirmed severe incident requires restoring the latest verified backup under the school owner’s approval. After a restore, rotate affected keys, re-run migrations only as documented, and repeat the smoke test.
+## Student manual
 
-## Backup and maintenance
+Students can view personal attendance, timetable, published results, download their own report card, announcements, and fee status. They cannot change academic, attendance, grade, or fee records. Missing or incorrect information should be reported to the school office.
 
-- **Backups:** enable the Supabase plan’s regular backups/PITR where available. Before migrations or bulk imports, create and label a manual backup. Periodically export critical student, attendance, grades, and fee records through an approved administrator workflow or secure database export.
-- **Restore:** test restoration in a non-production project first. Record the backup timestamp, restore owner, migrations present, validation result, and any corrective actions.
-- **Key rotation:** rotate Supabase keys if exposed or on the school’s schedule. Update local/Vercel server settings, redeploy, verify sign-in/invitations, then revoke the old key. Never log or commit keys.
-- **Dependencies:** run `npm audit --omit=dev` from a connected environment, review high/critical findings, update with tests and build checks, and commit the lockfile with the update.
-- **Logs and monitoring:** Vercel captures concise application errors. Logs intentionally exclude request data, cookies, record IDs, database messages, and secrets. Review failed requests and Auth/Storage audit information after releases.
-- **Migrations:** retain all migration files permanently and apply only in order. Run pgTAP against the linked Supabase database after migration promotion.
+## Parent manual
 
-## Testing
+Parents can select a linked child and view that child’s attendance, timetable, published results/report cards, announcements, and fee records. They cannot edit records or view any unlinked child. Ask the school office to correct a guardian link.
 
-```text
-npm run lint
-npm run typecheck
-npm run test
-npm run test:e2e
-npm run build
-```
+## Change brand colors
 
-`npm run test` includes unit and workflow-contract coverage. `supabase/tests/production_hardening.test.sql` is a pgTAP structural gate for a linked database. `npm run test:e2e` runs Playwright role access checks only when `E2E_BASE_URL` and fictional role credentials are set. It covers admin authentication, teacher/admin separation, and student/parent read-only route isolation; live data scenarios must additionally verify attendance, grade publication, fees, announcements, and report-card authorization during the smoke test.
+The two main colors are centralized in `app/globals.css`:
+
+- Set `--brand` for the primary school color.
+- Set `--accent` for the secondary school color.
+
+Also check `--brand-foreground` and `--accent-foreground` for readable text contrast. Use an accessible color-contrast checker, test buttons, focus outlines, and small mobile text, then run lint, typecheck, tests, and a build.
+
+## Change the school name and school information
+
+The current school name is intentionally simple and code-based, not a database setting. Update these places together:
+
+- `app/layout.tsx` for browser title metadata.
+- `components/shell/app-shell.tsx` for the signed-in header.
+- `app/(auth)/login/page.tsx` and `app/error.tsx` for public screens.
+- `components/results/report-card-document.tsx` for PDF report cards.
+
+Search the project for `Jahan School` afterwards to catch all remaining copy. Make one small commit, test the PDF report card, and deploy a new build.
+
+## Manage academic years and users
+
+Create one active academic year with valid start/end dates, then its terms, classes, sections, subjects, assignments, and enrollments. Keep historical academic years rather than editing past records. Before a new school year, review capacity, teacher assignments, timetable conflicts, and fee setup.
+
+Create staff/student records first. Link a Supabase Auth account only when portal access is needed and choose the appropriate fixed role. A parent account must be linked to the correct child by an administrator. Deactivate records instead of deleting historical academic or financial evidence.
+
+## Generate report cards
+
+1. Confirm that every required grade is entered and the exam is ready.
+2. Publish the exam from the admin workflow. Publication locks its grade history.
+3. The authorized student or linked parent can open the published result and download a private PDF report card. Administrators can use reporting screens for operational review.
+4. If a result is wrong, preserve the audit trail. Use the approved correction process and a new forward-only database change if a system-level issue exists.
+
+## Manage fees
+
+Fee records are manual bookkeeping, not online payments. An administrator creates a fee type and student fee record with an amount and due date, then records each payment. The system calculates unpaid, partially paid, paid, or overdue status. Payment history is append-only and the system rejects overpayments. Students and parents can only view authorized fee records.
+
+## Back up data and apply migrations
+
+- Enable Supabase backups/PITR. Before a migration, bulk import, or major correction, create and label a manual backup.
+- Periodically export essential student, attendance, result, and fee data through an approved secure process.
+- Test a restore into a non-production project quarterly. Record the backup date, restore owner, migration level, and outcome.
+- Apply migrations to development, then Preview, then Production. Take a Production backup first. Verify migration history after each promotion.
+- Never edit an applied migration or restore a database solely to undo application code. Use a new forward-only corrective migration unless a severe approved incident requires a restore.
+
+## Update dependencies
+
+Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` in a branch. Review high or critical findings promptly, update deliberately, test Preview, then commit both `package.json` and `package-lock.json`. Do not run force upgrades without reviewing compatibility and release tests.
 
 ## Troubleshooting
 
-- **Login redirects to unauthorized:** confirm the Auth user has an active `profiles` row with the intended fixed role.
-- **Invitation fails:** confirm the service-role key is server-only, the Site URL is correct, and Supabase permits the callback URL.
-- **Storage upload fails:** check private bucket policies, object path ownership, MIME type, and size.
-- **Migration fails:** stop promotion, restore or correct only in the non-production environment, and add a new migration. Do not edit an applied migration.
-- **Report card fails:** confirm publication, student/parent scope, completed grades, and platform rate-limit logs.
+- **Login redirects to unauthorized:** verify an active `profiles` row has the intended fixed role.
+- **Invitation fails:** check server-only service-role key, exact `NEXT_PUBLIC_SITE_URL`, and Supabase Auth callback URLs.
+- **Storage upload fails:** verify private bucket policy, object ownership path, allowed JPEG/PNG/WebP type, and 5 MB photo limit.
+- **Migration fails:** stop promotion. Investigate in non-production and add a new corrective migration; never edit a migration already applied elsewhere.
+- **Report card fails:** verify a published, complete result and student/parent scope. Check Vercel Firewall and sanitized logs.
+- **A parent sees no child:** verify the administrator created the correct guardian-child link and the child remains active.
 
-## Current limitations
+## Known limitations
 
-Live Supabase migration, RLS, Storage, pgTAP, browser E2E, accessibility scanning, and visual QA have not run from this repository because no linked disposable project is available. Announcement email is intentionally disabled until an approved policy exists.
+- Online payments, email delivery, and all excluded enterprise modules are intentionally absent.
+- Announcement email remains disabled until a school-approved recipient, opt-out, retry, and abuse policy exists.
+- The final live Supabase migration, RLS/Storage, browser E2E, accessibility, mobile visual, and deployment checks must be completed before production approval. See `PROJECT_STATE.md` and `HANDOVER_CHECKLIST.md`.
+- Application request throttling is process-local defense in depth; Vercel Firewall remains the production rate-limit control.
+
+## Simple maintenance checklist
+
+- Daily: review failed invitations, attendance exceptions, overdue fees, and Vercel/Supabase alerts.
+- Monthly: run the dependency checks, review admin users and access, and confirm backups are succeeding.
+- Before every release: run tests/build, deploy Preview, test every role with fictional accounts, and confirm database migration/rollback plans.
+- Quarterly: test a non-production backup restore, review domain and provider ownership, rotate credentials on schedule, and review this guide.
+
+## Development phases and important changes
+
+1. Core school modules delivered fixed roles, records, academics, attendance, results, timetables, announcements, portals, fees, and dashboard.
+2. UI and accessibility polish added responsive navigation, touch-friendly forms, readable tables, semantic tokens, focus visibility, and reduced-motion support.
+3. Production hardening added RLS/server guards, private Storage, authoritative fee/announcement workflows, transaction and lifecycle locks, safe API errors, secure PDF responses, CI, Vercel configuration, and release tests.
+4. The v1 release branch upgraded Next.js to 16.3.0, clearing the production dependency audit, and finalized this owner handover.
