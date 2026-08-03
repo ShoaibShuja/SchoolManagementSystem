@@ -1,0 +1,7 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentProfile } from "@/lib/auth/profile";
+import { getAnnouncementSetup, saveAnnouncement } from "@/lib/announcements/data";
+import { announcementSchema } from "@/lib/announcements/schemas";
+const denied = () => NextResponse.json({ error: "Only active administrators and teachers can manage announcements." }, { status: 403 });
+export async function GET() { const profile = await getCurrentProfile(); if (!profile || profile.status !== "active") return NextResponse.json({ error: "Authentication is required." }, { status: 401 }); if (profile.role !== "admin" && profile.role !== "teacher") return denied(); try { return NextResponse.json(await getAnnouncementSetup()); } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Announcements could not be loaded." }, { status: 400 }); } }
+export async function POST(request: NextRequest) { const profile = await getCurrentProfile(); if (!profile || profile.status !== "active") return NextResponse.json({ error: "Authentication is required." }, { status: 401 }); if (profile.role !== "admin" && profile.role !== "teacher") return denied(); try { const body = await request.json(); await saveAnnouncement(body.id ?? null, announcementSchema.parse(body)); return NextResponse.json({ ok: true }); } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Announcement could not be saved." }, { status: 400 }); } }

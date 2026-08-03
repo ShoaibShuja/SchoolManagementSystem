@@ -2,15 +2,15 @@
 
 ## Current phase
 
-MVP stabilization and the academic structure/timetable phase are complete locally. `release/mvp` remains merged and this branch now carries the next feature group. Production approval remains blocked until a linked Supabase project verifies migrations, live Auth, RLS isolation, and Storage policies.
+MVP stabilization, academic/timetable, examinations, announcements, and read-only portal source implementation are complete locally. Production approval remains blocked until linked Supabase checks pass.
 
 ## Current branch
 
-`feat/academics-timetable`
+`feat/portals-announcements`
 
 ## Last completed prompt
 
-Implement the academic structure and timetable phase.
+Complete the student and parent portals and implement announcement management.
 
 ## Completed work
 
@@ -40,16 +40,21 @@ Implement the academic structure and timetable phase.
 - Added migration-backed term containment/overlap rules, active-only subject-code uniqueness, timetable assignment consistency, room overlap protection, and useful section/teacher/room conflict messages.
 - Added teacher workload and timetable views plus student self and parent linked-child timetable views. All read-only scope remains derived from existing assignments and current enrollments.
 - Added enrollment history review without a destructive reassignment path, Zod contracts for academic forms, protected academic APIs, and academic migration/RLS contract coverage.
+- Added exam and subject-paper setup with term-bound exam dates, maximum/passing-mark validation, draft/open/closed/published lifecycle, and admin-only publication.
+- Added assignment-scoped teacher gradebooks, atomic grade saves, marks validation, audit history, published-result locks, and full-roster publication checks.
+- Added one shared deterministic result-calculation module for screen and PDF data, including absence, exemption, missing marks, totals, averages, grades, and pass/fail status.
+- Added student self-only and parent linked-child published-result views plus protected on-demand PDF report cards generated with `@react-pdf/renderer`.
+- Added secure announcements with role, class, section, and academic-year targets; teacher assigned-section targeting; publication/expiry filtering; and read-only student/parent portal dashboards.
 
 ## In-progress work
 
 - Complete the linked-Supabase release checklist in `docs/MVP_AUDIT.md` before declaring the merged MVP release-ready.
-- Apply the new academic/timetable migration in a linked Supabase project and execute the live role-isolation and conflict checks.
+- Apply the academic and examination migrations in a linked Supabase project and execute live role-isolation, publication, grade-lock, and report-card access checks.
 
 ## Remaining work
 
 - Approve the MVP only after real-project migration, Auth, role-isolation, direct-route, attendance, and private-Storage checks pass.
-- Build the gradebook/results, report-card, announcement, and fee modules.
+- Build the announcement and fee modules.
 - Add database, integration, end-to-end, accessibility, and deployment test coverage.
 
 ## Important architecture decisions
@@ -68,6 +73,9 @@ Implement the academic structure and timetable phase.
 - Attendance saves use a security-invoker database function. Teachers need a current section assignment; repeated saves correct an existing record rather than duplicating it.
 - Academic years and terms are retained as historical records. A term must stay inside its year and cannot overlap another term. An academic year cannot be shortened to exclude existing term or enrollment dates.
 - Teacher assignments are year-scoped and are the authority for teacher timetable access. Timetable entries inherit teacher, section, and subject context from an assignment and reject section, teacher, and named-room collisions.
+- Exam subject papers belong to an exam, section, and subject, with their date constrained to the selected term. Teachers can save grades only through matching year/section/subject assignments; administrators alone can publish a complete exam.
+- Published results are immutable at the database layer. Public result reads require publication and existing student or parent scope; report cards are generated on demand through the same protected result lookup and never persisted.
+- Result calculations live in `lib/results/calculations.ts` and are passed as a DTO to both screen and PDF rendering, preventing formula drift.
 
 ## Database migrations
 
@@ -78,6 +86,7 @@ Implement the academic structure and timetable phase.
 - `20260802000500_support_admin_record_management.sql`
 - `20260802000600_add_attendance_workflows.sql`
 - `20260802000700_strengthen_academics_and_timetables.sql`
+- `20260802000800_add_exam_gradebook_and_publication_workflows.sql`
 
 ## Implemented routes
 
@@ -93,12 +102,17 @@ Implement the academic structure and timetable phase.
 - `/admin/classes`
 - `/admin/attendance`
 - `/admin/academics`
+- `/admin/exams`
 - `/teacher/attendance`
 - `/teacher/academics`
+- `/teacher/grades`
+- `/teacher/grades/[id]`
 - `/student/attendance`
 - `/student/timetable`
+- `/student/results`
 - `/parent/attendance`
 - `/parent/timetable`
+- `/parent/results`
 - `/dashboard`
 - `/auth/callback`
 - `/auth/signout`
@@ -113,16 +127,17 @@ Implement the academic structure and timetable phase.
 
 ## Known issues
 
-- Migrations and RLS policies through `20260802000700` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
+- Migrations and RLS policies through `20260802000800` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
 - Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
 - Migration, RLS, invitation, account-link, capacity, attendance, direct-route, and Storage behavior cannot be executed in this Windows runtime without a linked Supabase project. This prevents a release or tag claim.
 - `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
+- The sample report-card PDF parsed as a one-page document with expected text. PNG rendering could not be completed because the bundled Poppler launcher cannot find its native executable in this managed Windows environment.
 
 ## Test and build status
 
-2026-08-02: `npm run lint`, `npm run test` (15 tests), `npm run typecheck`, and `npm run build` passed. Static release tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, forms, attendance/enrollment constraints, and academic/timetable validation. The initial-admin command safely rejects missing required environment values. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
+2026-08-03: `npm run lint`, `npm run test` (18 tests), and `npm run typecheck` passed. Static tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, attendance/enrollment, academic/timetable validation, mark limits, calculations, publication locks, and result/report-card scope. `npm run build` was attempted but could not fetch the pre-existing Google Geist fonts because this managed environment has restricted network access. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
 
 ## Latest important commits
 
@@ -148,7 +163,8 @@ Implement the academic structure and timetable phase.
 - `e3a1047` Merge pull request #5 from ShoaibShuja/release/mvp
 - `4f2b535` docs: refresh continuation state
 - `5eb5145` feat: add academic structure and timetable workflows
+- `77d4ed8` feat: add exams gradebooks and report cards
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000700` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`, including academic term, assignment, and timetable conflict checks. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement gradebooks and results without weakening the existing attendance/RLS boundaries.
+Apply migrations through `20260802000800` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`, including teacher grade scope, publication, grade-lock, student/parent isolation, and report-card download checks. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement announcements or fee record-keeping without weakening the existing RLS boundaries.
