@@ -90,23 +90,24 @@ export async function getStudent(id: string, academicYearId?: string): Promise<S
 
 export async function createStudent(values: StudentInput) {
   const supabase = await adminClient();
-  const { data: student, error: studentError } = await supabase.from("students").insert({ admission_number: values.admissionNumber, first_name: values.firstName, last_name: values.lastName, date_of_birth: values.dateOfBirth, enrolled_on: values.enrolledOn, status: values.status }).select("id").single();
-  unwrapError(studentError);
-  if (!student) throw new AdminRecordError("The student record could not be created.");
-  const { data: guardian, error: guardianError } = await supabase.from("parents").insert({ first_name: values.guardianFirstName, last_name: values.guardianLastName, phone: values.guardianPhone, email: values.guardianEmail }).select("id").single();
-  if (guardianError || !guardian) { await supabase.from("students").delete().eq("id", student.id); if (!guardianError) throw new AdminRecordError("The guardian record could not be created."); unwrapError(guardianError); }
-  const { error: linkError } = await supabase.from("parent_student_links").insert({ parent_id: guardian!.id, student_id: student.id, relationship: values.guardianRelationship, is_primary_contact: true });
-  if (linkError) { await supabase.from("parents").delete().eq("id", guardian!.id); await supabase.from("students").delete().eq("id", student.id); unwrapError(linkError); }
-  if (values.academicYearId && values.sectionId) {
-    const { error: enrollmentError } = await supabase.from("student_enrollments").insert({ student_id: student.id, academic_year_id: values.academicYearId, section_id: values.sectionId, enrolled_on: values.enrolledOn, status: "active" });
-    if (enrollmentError) {
-      await supabase.from("parent_student_links").delete().eq("parent_id", guardian!.id).eq("student_id", student.id);
-      await supabase.from("parents").delete().eq("id", guardian!.id);
-      await supabase.from("students").delete().eq("id", student.id);
-      unwrapError(enrollmentError);
-    }
-  }
-  return student.id;
+  const { data, error } = await supabase.rpc("create_student_with_guardian", {
+    requested_admission_number: values.admissionNumber,
+    requested_first_name: values.firstName,
+    requested_last_name: values.lastName,
+    requested_date_of_birth: values.dateOfBirth,
+    requested_enrolled_on: values.enrolledOn,
+    requested_status: values.status,
+    requested_guardian_first_name: values.guardianFirstName,
+    requested_guardian_last_name: values.guardianLastName,
+    requested_guardian_phone: values.guardianPhone,
+    requested_guardian_email: values.guardianEmail,
+    requested_guardian_relationship: values.guardianRelationship,
+    requested_academic_year_id: values.academicYearId,
+    requested_section_id: values.sectionId,
+  });
+  unwrapError(error);
+  if (!data) throw new AdminRecordError("The student record could not be created.");
+  return data;
 }
 
 export async function updateStudent(id: string, values: StudentInput) {
