@@ -6,7 +6,7 @@ Production hardening is complete in source. Release approval is blocked only on 
 
 ## Current branch and last completed prompt
 
-- Branch: `chore/production-hardening`
+- Branch: `main` (one local documentation commit ahead of `origin/main`)
 - Prompt: Production hardening, CI/CD, operations, and release verification.
 
 ## Completed work
@@ -69,6 +69,10 @@ On 2026-08-04: `npm run lint`, `npm run typecheck`, `npm run test` (28 tests), `
 - `0060a1a` fix: secure API responses and request handling
 - `107cce9` test: add production hardening coverage
 - `0932adc` ci: add production quality workflow
+- `4bf76d7` docs: add production operations guide
+- `eabc486` fix: qualify payment locking query
+- `9c3a3aa` Merge pull request #11 from ShoaibShuja/chore/production-hardening
+- `4bc7659` docs: refresh production hardening state
 
 ## Recommended next prompt
 
