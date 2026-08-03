@@ -184,4 +184,13 @@ Complete the student and parent portals and implement announcement management (m
 
 ## Recommended next prompt
 
+Complete live Supabase verification for migration `20260803001000_complete_fee_management_and_reports.sql`, including admin-only fee writes, overpayment rejection, student self-only access, parent linked-child access, status refreshes, dashboard metrics, and report filters. Then complete the outstanding MVP audit and deployment checks.
+
+## Fee management and reporting update
+
+- Current branch: `feat/fees-reporting`.
+- Added migration `20260803001000_complete_fee_management_and_reports.sql` to extend fee types, add record/payment attribution and payment method, enforce RPC write authorization, prevent overpayment, and synchronize statuses.
+- Added admin fee management, student and parent read-only fee pages, fee navigation, compact report entry points, and dashboard fee/announcement operations.
+- Added fee-status and dashboard contract tests. On 2026-08-03, lint passed with the pre-existing React Hook Form advisory; tests passed (25), typecheck passed, and production build passed. Live Supabase verification remains required.
+
 On `feat/fees-reporting`, first apply migrations through `20260803000900` to a non-production linked Supabase project and complete `docs/MVP_AUDIT.md` plus live announcement checks: assigned/unassigned teacher targets, role/class/section/year audiences, draft/future/expired hiding, and student/parent linked-child isolation. Also verify grades, publication locks, and direct report-card access. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement manual fee record-keeping without weakening existing RLS boundaries.
