@@ -79,7 +79,7 @@ declare
 begin
   if not (select private.is_admin()) then raise exception 'Only administrators can record payments'; end if;
   if requested_amount <= 0 then raise exception 'Payment amount must be greater than zero'; end if;
-  select amount_due into amount_due from public.fee_records where id = requested_fee_record_id for update;
+  select fr.amount_due into amount_due from public.fee_records fr where fr.id = requested_fee_record_id for update;
   if not found then raise exception 'Fee record was not found'; end if;
   select coalesce(sum(amount), 0) into paid_total from public.fee_payments where fee_record_id = requested_fee_record_id;
   if paid_total + requested_amount > amount_due then raise exception 'Fee payments cannot exceed the amount due'; end if;
