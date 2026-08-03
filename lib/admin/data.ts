@@ -184,14 +184,16 @@ export async function deleteSection(id: string) { const supabase = await adminCl
 
 export async function getAdminDashboard() {
   const supabase = await adminClient();
-  const [students, teachers, classes, sections, academicYear] = await Promise.all([
+  const [students, teachers, classes, sections, academicYear, feeRecords, announcements] = await Promise.all([
     supabase.from("students").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("teachers").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("classes").select("id", { count: "exact", head: true }),
     supabase.from("sections").select("id", { count: "exact", head: true }),
     supabase.from("academic_years").select("id, name").eq("status", "current").maybeSingle(),
+    supabase.from("fee_records").select("id", { count: "exact", head: true }).in("status", ["unpaid", "partially_paid", "overdue"]),
+    supabase.from("announcements").select("id, title").eq("status", "published").order("published_at", { ascending: false }).limit(5),
   ]);
-  [students.error, teachers.error, classes.error, sections.error, academicYear.error].forEach(unwrapError);
+  [students.error, teachers.error, classes.error, sections.error, academicYear.error, feeRecords.error, announcements.error].forEach(unwrapError);
   let attendance: { marked: number; total: number } | null = null;
   if (academicYear.data) {
     const today = new Date().toISOString().slice(0, 10);
@@ -202,5 +204,5 @@ export async function getAdminDashboard() {
     [marked.error, enrolled.error].forEach(unwrapError);
     attendance = { marked: marked.count ?? 0, total: enrolled.count ?? 0 };
   }
-  return { activeStudents: students.count ?? 0, activeTeachers: teachers.count ?? 0, classes: classes.count ?? 0, sections: sections.count ?? 0, academicYear: academicYear.data?.name ?? null, attendance, pendingAttendance: attendance ? Math.max(0, attendance.total - attendance.marked) : null };
+  return { activeStudents: students.count ?? 0, activeTeachers: teachers.count ?? 0, classes: classes.count ?? 0, sections: sections.count ?? 0, academicYear: academicYear.data?.name ?? null, attendance, pendingAttendance: attendance ? Math.max(0, attendance.total - attendance.marked) : null, pendingFees: feeRecords.count ?? 0, announcements: announcements.data ?? [] };
 }

@@ -1,4 +1,4 @@
-import { BookOpenCheck, CalendarCheck, GraduationCap, LayoutDashboard, School, Users, type LucideIcon } from "lucide-react";
+import { BookOpenCheck, CalendarCheck, CreditCard, GraduationCap, LayoutDashboard, School, Users, type LucideIcon } from "lucide-react";
 
 export const roles = ["admin", "teacher", "student", "parent"] as const;
 export type AppRole = (typeof roles)[number];
@@ -15,6 +15,8 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
     { href: "/admin/exams", label: "Exams and results", icon: BookOpenCheck },
     { href: "/admin/announcements", label: "Announcements", icon: BookOpenCheck },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/admin/fees", label: "Fees", icon: CreditCard },
+    { href: "/admin/reports", label: "Reports", icon: LayoutDashboard },
   ],
   teacher: [
     { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
@@ -29,6 +31,7 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
     { href: "/student/timetable", label: "Timetable", icon: School },
     { href: "/student/results", label: "Results", icon: BookOpenCheck },
     { href: "/student/announcements", label: "Announcements", icon: BookOpenCheck },
+    { href: "/student/fees", label: "Fees", icon: CreditCard },
   ],
   parent: [
     { href: "/parent", label: "Dashboard", icon: LayoutDashboard },
@@ -36,5 +39,6 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
     { href: "/parent/timetable", label: "Timetables", icon: School },
     { href: "/parent/results", label: "Results", icon: BookOpenCheck },
     { href: "/parent/announcements", label: "Announcements", icon: BookOpenCheck },
+    { href: "/parent/fees", label: "Fees", icon: CreditCard },
   ],
 };
