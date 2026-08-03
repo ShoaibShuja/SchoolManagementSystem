@@ -14,7 +14,7 @@ test("hardening migration makes fee and teacher announcement writes authoritativ
   assert.match(migration, /for update/);
   assert.match(migration, /drop policy if exists announcements_insert_authorized/);
   assert.match(migration, /save_announcement[\s\S]*security definer/);
-  assert.match(migration, /owner_id = \(select auth\.uid\(\)\)/);
+  assert.match(migration, /owner_id = \(select auth\.uid\(\)::text\)/);
 });
 
 test("integrity migration serializes critical writes and preserves grade history", async () => {

@@ -1,8 +1,8 @@
 -- Production hardening: privileged workflows must remain authoritative even
 -- when an authenticated user calls PostgREST directly instead of the UI.
 
--- Storage ownership is a UUID. Use the native type consistently so private
--- profile-photo policies apply cleanly in a linked Supabase project.
+-- storage.objects.owner_id is text. Compare it to the authenticated UUID as
+-- text so these policies work with the Supabase Storage schema.
 drop policy if exists profile_photos_read_own_or_admin on storage.objects;
 drop policy if exists profile_photos_upload_own_or_admin on storage.objects;
 drop policy if exists profile_photos_update_own_or_admin on storage.objects;
@@ -10,7 +10,7 @@ drop policy if exists profile_photos_delete_own_or_admin on storage.objects;
 
 create policy profile_photos_read_own_or_admin on storage.objects
 for select to authenticated
-using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()) or (select private.is_admin())));
+using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()::text) or (select private.is_admin())));
 
 create policy profile_photos_upload_own_or_admin on storage.objects
 for insert to authenticated
@@ -18,12 +18,12 @@ with check (bucket_id = 'profile-photos' and ((storage.foldername(name))[1] = (s
 
 create policy profile_photos_update_own_or_admin on storage.objects
 for update to authenticated
-using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()) or (select private.is_admin())))
+using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()::text) or (select private.is_admin())))
 with check (bucket_id = 'profile-photos' and ((storage.foldername(name))[1] = (select auth.uid()::text) or (select private.is_admin())));
 
 create policy profile_photos_delete_own_or_admin on storage.objects
 for delete to authenticated
-using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()) or (select private.is_admin())));
+using (bucket_id = 'profile-photos' and (owner_id = (select auth.uid()::text) or (select private.is_admin())));
 
 -- Fee records and payments are financial history. Their only write path is
 -- the checked RPCs below; the read policies from migration 003 remain active.
