@@ -12,11 +12,13 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
     { href: "/admin/teachers", label: "Teachers", icon: GraduationCap },
     { href: "/admin/classes", label: "Classes", icon: School },
     { href: "/admin/academics", label: "Academic setup", icon: BookOpenCheck },
+    { href: "/admin/exams", label: "Exams and results", icon: BookOpenCheck },
     { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
   ],
   teacher: [
     { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/teacher/academics", label: "My teaching", icon: Users },
+    { href: "/teacher/grades", label: "Gradebooks", icon: BookOpenCheck },
     { href: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
   ],
   student: [
@@ -30,6 +32,7 @@ export const roleNavigation: Record<AppRole, NavigationItem[]> = {
     { href: "/parent/children", label: "Children", icon: GraduationCap },
     { href: "/parent/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/parent/timetable", label: "Timetables", icon: School },
+    { href: "/parent/results", label: "Results", icon: BookOpenCheck },
     { href: "/parent/announcements", label: "Announcements", icon: BookOpenCheck },
   ],
 };
