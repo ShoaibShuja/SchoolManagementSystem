@@ -186,6 +186,14 @@ The future primary and accent school colors are centralized in `app/globals.css`
 
 ## Deployment overview
 
+## Fee management and reports
+
+1. Administrators open **Fees** to create active fee types and manual fee records. Choose the student, academic year, optional term, amount due, and due date.
+2. Record a payment with its date, simple payment method label, and receipt or reference number. The database prevents negative values and payments above the amount due.
+3. Fee statuses update consistently as unpaid, partially paid, paid, or overdue. Students see only their own history; parents see only linked children. Teachers have no fee access.
+4. The admin dashboard shows pending or overdue fee records, recent published announcements, current attendance, academic counts, and task links.
+5. **Reports** provides focused attendance, examination, and fee-status views. Use the source attendance and fee screens for their supported filters and pagination. CSV export is intentionally omitted until a reviewed export policy is needed.
+
 The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
 
 ## Known limitations
@@ -193,5 +201,5 @@ The intended deployment is Vercel with Supabase. Add the same environment variab
 - The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
 - Profile-image uploads need live private-Storage verification before production use.
 - Attendance, academic/timetable, gradebook, publication, and report-card access behavior need live Supabase verification before production use.
-- Fee records remain a placeholder. Optional Resend delivery is intentionally disabled pending approved recipient resolution and live verification.
+- Fee workflows require migration `20260803001000_complete_fee_management_and_reports.sql` and live RLS verification before production use. Optional Resend delivery is intentionally disabled pending approved recipient resolution and live verification.
 - The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.

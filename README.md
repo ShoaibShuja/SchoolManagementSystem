@@ -31,6 +31,6 @@ npm run bootstrap:admin
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` server-only. Never expose it to the browser.
 
-Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, through `20260803000900_secure_announcements_and_portals.sql`. For a safe demonstration database, use only the clearly fictional `.invalid` records in `supabase/seed.sql`; it contains no usable passwords and must not be used in production. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) and [docs/MVP_AUDIT.md](docs/MVP_AUDIT.md) for setup and verification.
+Apply migrations with the official Supabase CLI from a supported development host before running the application against a database, through `20260803001000_complete_fee_management_and_reports.sql`. Manual fee records and payments are supported; online payments are not. For a safe demonstration database, use only the clearly fictional `.invalid` records in `supabase/seed.sql`; it contains no usable passwords and must not be used in production. See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) and [docs/MVP_AUDIT.md](docs/MVP_AUDIT.md) for setup and verification.
 
 See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for owner-focused setup and [PROJECT_STATE.md](PROJECT_STATE.md) for current technical progress.
