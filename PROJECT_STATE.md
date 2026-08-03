@@ -6,7 +6,7 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 
 ## Branch and release commits
 
-- Final branch: `release/v1-production`
+- Current branch: `main`
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
 - Handover documentation: this release branch after the final documentation commit
 
@@ -36,6 +36,7 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 - `npm run test`: passed, 28/28 tests.
 - `npm run test:e2e -- --list`: passed; 3 role-access tests collected.
 - `npm run build`: passed with Next.js 16.3.0.
+- Development CSP allows React's required `'unsafe-eval'` only when `NODE_ENV=development`; production does not include it.
 - Live migration/pgTAP, Auth/RLS/Storage isolation, browser E2E, accessibility scan, mobile visual QA, and deployment smoke testing: pending a disposable environment and fictional accounts.
 
 ## Deployment status

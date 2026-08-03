@@ -78,6 +78,8 @@ If the script says an administrator already exists, use that account; do not run
 7. Enable backups/PITR if offered by the Supabase plan. Configure Vercel Firewall rate limits for `/api/results/*/report-card` and `/api/admin/accounts`.
 8. Complete the smoke test in the handover checklist before announcing the release.
 
+The application allows `'unsafe-eval'` only while running in development because React needs it for useful debug errors. Production builds do not receive that CSP exception.
+
 ## Admin manual
 
 1. Start with **Academics**: create the active academic year, terms, classes, sections, subjects, and teacher assignments.
