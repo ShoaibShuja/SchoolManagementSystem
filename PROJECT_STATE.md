@@ -2,15 +2,15 @@
 
 ## Current phase
 
-MVP stabilization, academic/timetable, examinations, announcements, and read-only portal source implementation are complete locally. Production approval remains blocked until linked Supabase checks pass.
+MVP stabilization, academic/timetable, examination/report-card, and portal/announcement implementation are complete and merged to `main`. Work is positioned on the unimplemented fee-reporting branch. Production approval remains blocked until linked Supabase checks pass.
 
 ## Current branch
 
-`feat/portals-announcements`
+`feat/fees-reporting`
 
 ## Last completed prompt
 
-Complete the student and parent portals and implement announcement management.
+Complete the student and parent portals and implement announcement management (merged in `45a5038`).
 
 ## Completed work
 
@@ -45,16 +45,18 @@ Complete the student and parent portals and implement announcement management.
 - Added one shared deterministic result-calculation module for screen and PDF data, including absence, exemption, missing marks, totals, averages, grades, and pass/fail status.
 - Added student self-only and parent linked-child published-result views plus protected on-demand PDF report cards generated with `@react-pdf/renderer`.
 - Added secure announcements with role, class, section, and academic-year targets; teacher assigned-section targeting; publication/expiry filtering; and read-only student/parent portal dashboards.
+- Added concise portal dashboards and role navigation for timetables, attendance, results, report cards, announcements, and fee placeholders.
+- Added a server-only, non-blocking optional Resend email abstraction. Delivery remains deliberately disabled until a recipient and notification policy is approved.
 
 ## In-progress work
 
 - Complete the linked-Supabase release checklist in `docs/MVP_AUDIT.md` before declaring the merged MVP release-ready.
-- Apply the academic and examination migrations in a linked Supabase project and execute live role-isolation, publication, grade-lock, and report-card access checks.
+- Apply migrations through the announcement migration in a linked Supabase project and execute live role-isolation, publication, grade-lock, report-card, and announcement-visibility checks.
 
 ## Remaining work
 
 - Approve the MVP only after real-project migration, Auth, role-isolation, direct-route, attendance, and private-Storage checks pass.
-- Build the announcement and fee modules.
+- Build manual fee record-keeping.
 - Add database, integration, end-to-end, accessibility, and deployment test coverage.
 
 ## Important architecture decisions
@@ -76,6 +78,8 @@ Complete the student and parent portals and implement announcement management.
 - Exam subject papers belong to an exam, section, and subject, with their date constrained to the selected term. Teachers can save grades only through matching year/section/subject assignments; administrators alone can publish a complete exam.
 - Published results are immutable at the database layer. Public result reads require publication and existing student or parent scope; report cards are generated on demand through the same protected result lookup and never persisted.
 - Result calculations live in `lib/results/calculations.ts` and are passed as a DTO to both screen and PDF rendering, preventing formula drift.
+- Announcement writes use a security-invoker database function rather than trusting client audience fields. Teachers are limited to their own assigned-section audiences; visible reads also enforce publication, schedule, expiry, role, enrollment, and parent-child scope.
+- Student and parent dashboards are intentionally concise, read-only summaries with links to focused module pages. Email configuration never blocks publishing and no email is sent from browser code.
 
 ## Database migrations
 
@@ -87,6 +91,7 @@ Complete the student and parent portals and implement announcement management.
 - `20260802000600_add_attendance_workflows.sql`
 - `20260802000700_strengthen_academics_and_timetables.sql`
 - `20260802000800_add_exam_gradebook_and_publication_workflows.sql`
+- `20260803000900_secure_announcements_and_portals.sql`
 
 ## Implemented routes
 
@@ -103,16 +108,20 @@ Complete the student and parent portals and implement announcement management.
 - `/admin/attendance`
 - `/admin/academics`
 - `/admin/exams`
+- `/admin/announcements`
 - `/teacher/attendance`
 - `/teacher/academics`
 - `/teacher/grades`
 - `/teacher/grades/[id]`
+- `/teacher/announcements`
 - `/student/attendance`
 - `/student/timetable`
 - `/student/results`
+- `/student/announcements`
 - `/parent/attendance`
 - `/parent/timetable`
 - `/parent/results`
+- `/parent/announcements`
 - `/dashboard`
 - `/auth/callback`
 - `/auth/signout`
@@ -124,20 +133,24 @@ Complete the student and parent portals and implement announcement management.
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` server-only
 - `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` only while running the initial-admin bootstrap command
+- Optional server-only announcement email configuration: `RESEND_API_KEY` and `ANNOUNCEMENT_FROM_EMAIL`
 
 ## Known issues
 
-- Migrations and RLS policies through `20260802000800` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
+- Migrations and RLS policies through `20260803000900` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
 - Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
 - The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
 - Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
 - Migration, RLS, invitation, account-link, capacity, attendance, direct-route, and Storage behavior cannot be executed in this Windows runtime without a linked Supabase project. This prevents a release or tag claim.
 - `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
 - The sample report-card PDF parsed as a one-page document with expected text. PNG rendering could not be completed because the bundled Poppler launcher cannot find its native executable in this managed Windows environment.
+- Announcement email is currently a safe no-op even when Resend variables are configured; recipient resolution and a duplicate-notification policy still require product approval.
+- `npm run lint` passes but reports a React Compiler advisory for React Hook Form `watch` in announcement management. Refactor it to explicit local state before treating lint output as warning-free.
+- The older admin dashboard and unused legacy role-dashboard copy still contain stale placeholder wording for announcements; the active student and parent portals are current.
 
 ## Test and build status
 
-2026-08-03: `npm run lint`, `npm run test` (18 tests), and `npm run typecheck` passed. Static tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, attendance/enrollment, academic/timetable validation, mark limits, calculations, publication locks, and result/report-card scope. `npm run build` was attempted but could not fetch the pre-existing Google Geist fonts because this managed environment has restricted network access. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
+2026-08-03: `npm run lint`, `npm run test` (21 tests), `npm run typecheck`, and `npm run build` passed. Static tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, attendance/enrollment, academic/timetable validation, grade limits/calculations/publication, result/report-card scope, and announcement targeting/visibility. Lint emits the known React Hook Form advisory. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
 
 ## Latest important commits
 
@@ -164,7 +177,11 @@ Complete the student and parent portals and implement announcement management.
 - `4f2b535` docs: refresh continuation state
 - `5eb5145` feat: add academic structure and timetable workflows
 - `77d4ed8` feat: add exams gradebooks and report cards
+- `b48b63e` docs: record exam and report card workflows
+- `9b50117` feat: add secure announcements and portal dashboards
+- `294c633` docs: document announcements and portal access
+- `45a5038` Merge pull request #8 from ShoaibShuja/feat/portals-announcements
 
 ## Recommended next prompt
 
-Apply migrations through `20260802000800` to a Supabase project and complete the live checklist in `docs/MVP_AUDIT.md`, including teacher grade scope, publication, grade-lock, student/parent isolation, and report-card download checks. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement announcements or fee record-keeping without weakening the existing RLS boundaries.
+On `feat/fees-reporting`, first apply migrations through `20260803000900` to a non-production linked Supabase project and complete `docs/MVP_AUDIT.md` plus live announcement checks: assigned/unassigned teacher targets, role/class/section/year audiences, draft/future/expired hiding, and student/parent linked-child isolation. Also verify grades, publication locks, and direct report-card access. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement manual fee record-keeping without weakening existing RLS boundaries.
