@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/admin/*.test.ts tests/attendance/*.test.ts tests/academics/*.test.ts tests/results/*.test.ts tests/announcements/*.test.ts tests/fees/*.test.ts tests/release/*.test.ts",
+    "test:e2e": "playwright test",
     "bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

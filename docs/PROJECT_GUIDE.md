@@ -1,212 +1,92 @@
 # Jahan School Management System Guide
 
-## Project overview
+## Overview
 
-Jahan School Management System is a single-school web application for administrators, teachers, students, and parents. It is designed to be simple to operate on desktop and mobile devices.
+Jahan is a single-school system for administrators, teachers, students, and parents. It covers records, attendance, academics, timetables, exams/results/report cards, announcements, and manual fee records. Online payments and out-of-scope enterprise modules are not included.
 
-## Current development phase
+## Roles and daily use
 
-The core MVP, academic/timetable, and assessment phases are complete in source code and have passed local tests, linting, and type checking. Administrators can manage exams, subject papers, and publication; teachers enter grades for assigned papers; students and parents can see only published results and their authorized PDF report cards. A linked Supabase project must still verify migrations, live Auth, RLS isolation, and Storage before a production release. Fees and announcements are not available yet.
+- **Admin:** manages school records, academic setup, attendance review, exams, announcements, fees, reports, and account invitations.
+- **Teacher:** sees only assigned academic work, marks attendance, enters grades for assigned subject papers, and targets announcements only to assigned sections.
+- **Student:** reads only personal attendance, timetable, published results/report cards, announcements, and fees.
+- **Parent:** reads only linked-child attendance, timetable, published results/report cards, announcements, and fees.
 
-## Main user roles
+## Setup and initial administrator
 
-- **Admin:** manages school records and daily operations.
-- **Teacher:** works with assigned classes, attendance, and later gradebooks.
-- **Student:** later views personal attendance, timetable, and results.
-- **Parent:** later views information for linked children.
+1. Create separate Supabase projects for development/preview and production. Never use seed data in production.
+2. Copy `.env.example` to `.env.local` and set the required variables below.
+3. Apply every migration in `supabase/migrations/` in timestamp order, ending with `20260804001200_strengthen_data_integrity.sql`.
+4. Set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` temporarily, then run `npm run bootstrap:admin` once. Remove the bootstrap variables afterwards.
+5. Complete the invitation through Supabase Auth and sign in.
 
-## Folder structure
+| Variable | Where it belongs | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | local, Vercel preview, Vercel production | Project URL; safe for the browser. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | local, Vercel preview, Vercel production | Publishable Supabase key; safe for the browser. |
+| `NEXT_PUBLIC_SITE_URL` | local, Vercel preview, Vercel production | Exact application origin used in invitation redirects. |
+| `SUPABASE_SERVICE_ROLE_KEY` | local and server deployment only | Invitation/bootstrap administration. Never expose it to the browser. |
+| `RESEND_API_KEY`, `ANNOUNCEMENT_FROM_EMAIL` | server deployment only | Reserved for a future approved announcement-email policy. |
 
-- `app/` contains pages, route groups, and global UI states.
-- `components/admin/` contains dashboard, student, teacher, class, section, and form-dialog interfaces.
-- `components/academics/` contains academic management and mobile-friendly weekly timetable views.
-- `components/results/` contains exam setup, grade-entry, results, and PDF report-card interfaces.
-- `components/` contains reusable interface pieces, forms, and the application shell.
-- `lib/admin/` contains server-only data access, API guards, Zod schemas, DTOs, filters, and account-linking logic.
-- `app/api/admin/` contains protected endpoints used by interactive admin tables.
-- `app/api/attendance/` contains role-protected attendance roster, save, and admin review endpoints.
-- `components/attendance/` contains the mobile-friendly marking workflow, summaries, and role dashboards.
-- `lib/attendance/` contains attendance DTOs, schemas, data access, API guards, and summary helpers.
-- `lib/academics/` contains academic/timetable DTOs, Zod schemas, server-only data access, and scoped portal queries.
-- `lib/results/` contains shared calculations, gradebook schemas, server-only result access, and DTOs used by the screen and PDF.
-- `docs/` contains owner-facing project documentation.
-- `supabase/` contains versioned database migrations, Storage policies, local seed data, and database tests.
-- `scripts/` contains the server-only initial-admin bootstrap command.
+## Deployment
 
-## Local setup
+Vercel detects this Next.js project through `vercel.json`. GitHub Actions validates every pull request and push to `main` with `npm ci`, lint, typecheck, tests, and a production build. It does not receive secrets.
 
-1. Install Node.js 20.9 or newer.
-2. Copy `.env.example` to `.env.local`.
-3. Add the Supabase project URL and publishable key.
-4. Keep the service-role key private. It belongs only in `.env.local` or secure deployment settings.
-5. Run `npm install`.
-6. Run `npm run dev`.
-7. Open `http://localhost:3000`.
+1. Connect the repository to Vercel. Map preview deployments to the non-production Supabase project and production deployments to a separate production project.
+2. Add the environment variables above separately for Preview and Production. Do not promote a build with preview `NEXT_PUBLIC_` values to production because public Next.js values are embedded during build.
+3. In Supabase Auth, add the exact Vercel preview and production callback URLs: `https://your-domain/auth/callback`. Set the production Site URL to the final domain.
+4. Add the custom domain in Vercel, verify DNS, then add the same HTTPS domain to Supabase Auth redirect URLs before enabling invitations.
+5. Keep `profile-photos`, `school-documents`, and `report-cards` private. The profile-photo bucket allows JPEG, PNG, and WebP up to 5 MB; report cards are generated on demand and are never publicly cached.
+6. Configure Vercel Firewall rate rules for `/api/results/*/report-card` and `/api/admin/accounts`. The application also applies process-local protection, but platform rules are the production control.
 
-## Required environment variables
+### Migration promotion
 
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Public Supabase project URL. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser-safe Supabase publishable key. |
-| `NEXT_PUBLIC_SITE_URL` | Local or deployed application URL. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for future invitation and bootstrap tasks. Never expose it in browser code. |
+Apply migrations to development first, then preview/staging, then production. Take a backup before every production migration. Use the Supabase CLI or dashboard migration workflow from a supported machine, verify migration history, and never edit an applied migration. Production corrections must be new forward-only migrations.
 
-## Initial admin setup
+### Smoke test after each deployment
 
-1. Create or select the Supabase project for the environment.
-2. Apply the versioned migrations using the official Supabase CLI from a supported development host or through the Supabase SQL migration workflow.
-3. Add the required environment variables locally and in the deployment environment.
-4. Set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` only in the terminal session that will create the first administrator.
-5. Run `npm run bootstrap:admin`.
-6. Open the invitation email and set the administrator password through Supabase Auth.
+Use fictional accounts and data:
 
-The bootstrap command refuses to create a second admin profile. Never place application passwords or password hashes in database tables, seed files, or source code.
+1. Sign in as each role and confirm its dashboard route.
+2. Confirm a teacher cannot access admin routes or an unassigned attendance roster/gradebook.
+3. Confirm student self-only and parent linked-child-only attendance, fees, results, and report-card access.
+4. Record a manual fee payment, attempt an overpayment, and confirm the balance/status.
+5. Publish a complete exam, verify grades become immutable, and download an authorized report card.
+6. Verify an unauthorized report-card URL fails, a private photo is not public, and a valid owner/admin upload works.
+7. Check Vercel logs for sanitized errors only, GitHub Actions status, and browser use at 320px, 768px, and 1280px.
 
-## Database setup
+### Rollback
 
-Database changes live in `supabase/migrations/` and must be applied in timestamp order. The schema includes profiles, people, academic structure, assignments, attendance, assessments, fees, announcements, RLS, and private Storage buckets.
+For an application-only failure, redeploy the last healthy Vercel deployment. Database migrations are forward-only: do not restore a database merely to revert code. Create a corrective migration unless data loss or a confirmed severe incident requires restoring the latest verified backup under the school owner’s approval. After a restore, rotate affected keys, re-run migrations only as documented, and repeat the smoke test.
 
-For local development, `supabase/seed.sql` creates clearly labelled example identities and school records. The seeded Auth rows have no usable password, are for local database tests only, and must never be used in production.
+## Backup and maintenance
 
-RLS is enabled for every public application table. Admins manage records; teachers are limited to assigned sections and subjects; students see only their own records; parents see only linked children. The application also checks roles on the server before rendering protected routes.
+- **Backups:** enable the Supabase plan’s regular backups/PITR where available. Before migrations or bulk imports, create and label a manual backup. Periodically export critical student, attendance, grades, and fee records through an approved administrator workflow or secure database export.
+- **Restore:** test restoration in a non-production project first. Record the backup timestamp, restore owner, migrations present, validation result, and any corrective actions.
+- **Key rotation:** rotate Supabase keys if exposed or on the school’s schedule. Update local/Vercel server settings, redeploy, verify sign-in/invitations, then revoke the old key. Never log or commit keys.
+- **Dependencies:** run `npm audit --omit=dev` from a connected environment, review high/critical findings, update with tests and build checks, and commit the lockfile with the update.
+- **Logs and monitoring:** Vercel captures concise application errors. Logs intentionally exclude request data, cookies, record IDs, database messages, and secrets. Review failed requests and Auth/Storage audit information after releases.
+- **Migrations:** retain all migration files permanently and apply only in order. Run pgTAP against the linked Supabase database after migration promotion.
 
-## Demonstration setup
+## Testing
 
-Use a separate Supabase development or demonstration project, never the production project.
+```text
+npm run lint
+npm run typecheck
+npm run test
+npm run test:e2e
+npm run build
+```
 
-1. Apply every migration through `20260802000800_add_exam_gradebook_and_publication_workflows.sql` in order.
-2. Optionally run `supabase/seed.sql` for clearly fictional `example.invalid` school records and attendance samples. It includes no usable password or real personal data.
-3. Configure environment variables and run `npm run bootstrap:admin` to create the first administrator through Supabase Auth.
-4. Sign in as the administrator, then create or invite separate test accounts for each role. Link only test student and parent profiles to the seed records.
-5. Use the checklist in `MVP_AUDIT.md` before demonstrating or approving the release.
+`npm run test` includes unit and workflow-contract coverage. `supabase/tests/production_hardening.test.sql` is a pgTAP structural gate for a linked database. `npm run test:e2e` runs Playwright role access checks only when `E2E_BASE_URL` and fictional role credentials are set. It covers admin authentication, teacher/admin separation, and student/parent read-only route isolation; live data scenarios must additionally verify attendance, grade publication, fees, announcements, and report-card authorization during the smoke test.
 
-Do not run the seed in production, and do not replace the fictional examples with real personal data for a demo.
+## Troubleshooting
 
-## How to change branding and colors
+- **Login redirects to unauthorized:** confirm the Auth user has an active `profiles` row with the intended fixed role.
+- **Invitation fails:** confirm the service-role key is server-only, the Site URL is correct, and Supabase permits the callback URL.
+- **Storage upload fails:** check private bucket policies, object path ownership, MIME type, and size.
+- **Migration fails:** stop promotion, restore or correct only in the non-production environment, and add a new migration. Do not edit an applied migration.
+- **Report card fails:** confirm publication, student/parent scope, completed grades, and platform rate-limit logs.
 
-The future primary and accent school colors are centralized in `app/globals.css` as `--brand` and `--accent`. Do not replace colors inside individual components. The temporary values are neutral until the school supplies final colors.
+## Current limitations
 
-## Current user experience
-
-- The sign-in page uses Supabase Auth and routes active profiles to the correct role dashboard.
-- The sign-out action ends the browser session through a protected route handler.
-- Administrators have a concise dashboard with active student and teacher totals, class and section counts, and today’s attendance progress when records exist.
-- Administrators can search, filter, paginate, create, edit, view, activate, and deactivate student records. Every student has a primary guardian contact and can be enrolled or moved to one section per academic year.
-- Administrators can search, filter, create, edit, and view teacher and basic staff records. Employment details are record-keeping only; there is no payroll or HR module.
-- Administrators can create, edit, and remove classes and sections. Sections enforce their configured capacity for active enrollments. Deletion is prevented when a record is still in use.
-- A school record does not need a login account. When an administrator supplies a student or teacher email, the system uses the server-only invitation process to create an Auth profile and link it to that record. Never use this screen to share or store passwords.
-- Once a student has a linked account, the student edit form can upload a private JPEG, PNG, or WebP profile image up to 5 MB.
-- Administrators use **Academic setup** to manage the school calendar, terms, active subjects, teacher assignments, enrollment history review, and the weekly timetable.
-- Teachers see only their assigned subjects, sections, scheduled lesson count, and weekly timetable. Students see the timetable for their current section. Parents see timetables for linked children only.
-- Administrators manage assessment setup and publish complete results. Teachers have only their assigned gradebooks. Students and parents see published results only, with a private report-card download.
-
-## Attendance manual
-
-### Teachers
-
-1. Open **Attendance**. Only current sections assigned to you are shown.
-2. Choose a section and date. The roster contains only actively enrolled students for that date.
-3. Use **All present**, then change individuals to absent, late, or excused and add short notes if needed.
-4. Save. Re-saving the same section and date updates records instead of creating duplicates.
-
-### Administrators
-
-1. Open **Attendance** to make authorized corrections.
-2. Use date, class, section, student, and status filters to review saved records and who saved them.
-3. The dashboard shows current-day coverage and pending attendance records.
-
-### Students and parents
-
-- Students can view only their own attendance summary and recent records.
-- Parents select a linked child and view that child’s attendance only. These pages are read-only.
-
-## Admin record management
-
-1. Open **Students** to add a learner, their admission information, current academic-year section, and primary guardian. Leave the academic year and section blank together when the student is not ready for placement.
-2. Use the student edit action to change a current section. The previous active enrollment is recorded as transferred, and a full destination section is rejected.
-3. Open **Teachers** to maintain employee number, contact information, qualification, and employment status. Staff records can exist without a login account.
-4. Open **Classes** to create grades and sections. Set a sensible capacity before enrollment. A class or section with dependent records cannot be deleted.
-5. Use the optional account email on a new or existing student or teacher record to send a secure invitation. “Activated” means an Auth profile is linked; it does not mean the person has necessarily completed their invitation yet.
-
-## Academic setup and timetable manual
-
-### Academic years and terms
-
-1. Open **Academic setup** as an administrator and create the academic year with its first and last day.
-2. Mark only the school’s operating year as **Current**. The database prevents more than one current year.
-3. Add terms under that year. Each term must fall inside the year and cannot overlap another term.
-4. Archive old years instead of deleting them. Historical enrollments, attendance, and future results depend on those records.
-
-### Subjects and teacher assignments
-
-1. Add each subject with a clear name and short code. Active codes must be unique. Set a subject inactive rather than deleting it when it has historical use.
-2. Create one assignment for each teacher, subject, section, and academic year combination.
-3. An assignment is the source of truth for teacher access. A teacher can see only their own assignments and related timetable entries.
-4. The assignment list displays how many weekly lessons have been scheduled, making unplanned workloads easy to spot.
-
-### Weekly timetable
-
-1. Add a teacher assignment before adding its lesson.
-2. Choose the academic year, assignment, weekday, start and end times, and optionally a room.
-3. The system rejects reversed times and overlapping lessons for the same section, teacher, or named room. Adjacent lessons are allowed.
-4. Timetables are shown as weekday groups instead of a dense grid, which also works well on mobile screens.
-5. To adjust a student’s current placement, use the student record transfer flow. The enrollment review is read-only so historical records are not accidentally reassigned.
-
-## Exams, gradebooks, and report cards
-
-### Exam setup and publication
-
-1. Open **Exams and results** as an administrator. Create an exam with its term, first and last exam dates, and a draft, open, or closed status.
-2. Add each subject paper with its section, subject, date, maximum marks, and optional passing mark. The date must fall in the selected term, and passing marks cannot exceed maximum marks.
-3. Teachers can enter grades while the exam is draft or open. Administrators should publish only after every enrolled student has a grade, absence, or exemption for each paper.
-4. Publishing makes results visible to the related student and parent accounts, and locks all grade changes. Draft and open results remain private to permitted staff.
-
-### Teacher grade entry
-
-1. Open **Gradebooks**. Only papers that match your teacher assignment are displayed.
-2. Enter a mark from zero to the paper maximum, or select **Absent** or **Exempt**. Add a short remark if useful.
-3. Select **Save draft grades**. The latest editor and prior changes are retained for audit purposes.
-4. Published and closed gradebooks are read-only. Ask an administrator to resolve an issue before publication.
-
-### Student, parent, and report-card access
-
-1. Students open **Results** to see their own published results. Parents use **Results** and select a linked child when there is more than one.
-2. Each result lists subject marks, maximums, grades, pass/fail status, total, average, and attendance where records exist.
-3. Use **Download report card** to create a private PDF. The filename includes the admission number and exam name; it includes school identity, student and class details, term, marks, totals, attendance, generated date, and signature placeholders.
-4. Result calculations use one shared rule set for the screen and PDF. Missing draft marks are shown as missing; publication prevents incomplete result sets.
-
-## Announcements and portals
-
-- Admins can create, edit, publish, return to draft, and archive announcements. They may target all users, roles, classes, sections, or academic years.
-- Teachers can manage only their own announcements and may target only their assigned sections. The database enforces this scope.
-- Students and parents see only published, unexpired announcements that match their role or linked academic records. Parent academic information is read-only.
-- Student and parent dashboards provide concise links to timetable, attendance, results/report cards, announcements, and a fee-record placeholder.
-- Optional announcement email uses server-only `RESEND_API_KEY` and `ANNOUNCEMENT_FROM_EMAIL`. Publishing remains available when they are absent; delivery is currently a safe no-op pending approved recipient resolution.
-
-## Deployment overview
-
-## Branding, layout, and mobile use
-
-- School colors are centralized as semantic tokens in `app/globals.css`. Replace only `--brand`, `--brand-foreground`, `--accent`, and their supporting tokens after the final accessible light-mode colors are approved. Do not place raw color values in page components.
-- Pages use one shared content width, consistent page headers, compact cards, and responsive gutters. Tables scroll horizontally on narrow screens instead of hiding columns.
-- On a phone, use the menu button to open navigation, then select a section. Attendance and grade entry use stacked student records so their controls remain usable by touch.
-- Form validation appears next to the related field. Use the keyboard-visible focus ring to move through actions, and use Escape or Close to leave a dialog.
-
-## Fee management and reports
-
-1. Administrators open **Fees** to create active fee types and manual fee records. Choose the student, academic year, optional term, amount due, and due date.
-2. Record a payment with its date, simple payment method label, and receipt or reference number. The database prevents negative values and payments above the amount due.
-3. Fee statuses update consistently as unpaid, partially paid, paid, or overdue. Students see only their own history; parents see only linked children. Teachers have no fee access.
-4. The admin dashboard shows pending or overdue fee records, recent published announcements, current attendance, academic counts, and task links.
-5. **Reports** provides focused attendance, examination, and fee-status views. Use the source attendance and fee screens for their supported filters and pagination. CSV export is intentionally omitted until a reviewed export policy is needed.
-
-The intended deployment is Vercel with Supabase. Add the same environment variables in Vercel project settings, use a separate production Supabase project, and apply only versioned migrations. The service-role key belongs only in Vercel server environment settings, never in `NEXT_PUBLIC_` variables.
-
-## Known limitations
-
-- The release is not approved until database migrations, live Auth, RLS isolation, direct-route access, and private Storage policies are exercised in a real Supabase environment.
-- Profile-image uploads need live private-Storage verification before production use.
-- Attendance, academic/timetable, gradebook, publication, and report-card access behavior need live Supabase verification before production use.
-- Fee workflows require migration `20260803001000_complete_fee_management_and_reports.sql` and live RLS verification before production use. Optional Resend delivery is intentionally disabled pending approved recipient resolution and live verification.
-- The repository includes a pgTAP database test foundation, but its execution requires a Supabase database environment.
+Live Supabase migration, RLS, Storage, pgTAP, browser E2E, accessibility scanning, and visual QA have not run from this repository because no linked disposable project is available. Announcement email is intentionally disabled until an approved policy exists.

@@ -2,86 +2,25 @@
 
 ## Current phase
 
-MVP stabilization, academic/timetable, examination/report-card, and portal/announcement implementation are complete and merged to `main`. Work is positioned on the unimplemented fee-reporting branch. Production approval remains blocked until linked Supabase checks pass.
+Production hardening is complete in source. Release approval is blocked only on applying migrations 001-012 and completing live Supabase, Storage, browser, and deployment checks in isolated environments.
 
-## Current branch
+## Current branch and last completed prompt
 
-`feat/fees-reporting`
-
-## Last completed prompt
-
-Complete the student and parent portals and implement announcement management (merged in `45a5038`).
+- Branch: `chore/production-hardening`
+- Prompt: Production hardening, CI/CD, operations, and release verification.
 
 ## Completed work
 
-- Configured strict TypeScript, path aliases, Tailwind CSS 4, shadcn/ui configuration, and semantic light-mode tokens.
-- Added Supabase SSR browser, server, and session-refresh proxy helpers with validated environment access.
-- Added TanStack Query, Sonner notifications, central query keys, safe error logging, and shared UI foundations.
-- Added responsive application shell, role-aware navigation, mobile navigation, authentication routes, protected route group, and safe role dashboard placeholders.
-- Added root loading, error, and not-found handling.
-- Added README, beginner guide, environment example, and this project state file.
-- Added four versioned Supabase migrations for normalized school data, integrity triggers, RLS policies, and private Storage buckets.
-- Added credential-free local seed identities and a pgTAP database-foundation test file.
-- Added profile-based role resolution, authenticated route guards, dashboard redirects, Auth callback handling, logout, and server-only invitation provisioning.
-- Added a one-time server-only first-admin bootstrap command.
-- Added secure, paginated admin management for students, teachers, classes, and sections, with responsive tables, detail sheets, confirmation dialogs, and clear empty/error states.
-- Added guardian details, active/inactive student status changes, optional secure account invitations, and account-status labels that distinguish school records from activated logins.
-- Added admin dashboard operational counts and a truthful current-day attendance progress count when a current academic year exists.
-- Added validated private Storage profile-image upload for linked student accounts; the path is checked against the linked profile before it is saved.
-- Added centralized admin DTOs, Zod schemas, data-access functions, protected API routes, TanStack Query table mutations, and focused unit/contract tests.
-- Added a migration that gives teacher records independent identity/contact fields, adds enforced section capacity, and performs section transfers atomically.
-- Added teacher-scoped attendance marking, admin attendance review/correction, student self-only attendance, and parent linked-child attendance.
-- Added role-specific teacher, student, and parent dashboards, plus admin pending-attendance counts.
-- Added academic-year date validation and an atomic attendance save function that validates assignment, roster membership, and duplicates.
-- Audited protected routes, server guards, RLS policy presence, seed-data safety, validation contracts, filtering, duplicate protection, and destructive-record safeguards.
-- Repaired the demonstration seed so its teacher satisfies the required record fields and added fictional attendance examples without usable credentials or personal data.
-- Added release contract checks for seed safety, role-route/API guards, RLS policy presence, and server-only service-role usage.
-- Added administrator management for academic years, non-overlapping terms, active subjects, teaching assignments, and weekly timetables.
-- Added migration-backed term containment/overlap rules, active-only subject-code uniqueness, timetable assignment consistency, room overlap protection, and useful section/teacher/room conflict messages.
-- Added teacher workload and timetable views plus student self and parent linked-child timetable views. All read-only scope remains derived from existing assignments and current enrollments.
-- Added enrollment history review without a destructive reassignment path, Zod contracts for academic forms, protected academic APIs, and academic migration/RLS contract coverage.
-- Added exam and subject-paper setup with term-bound exam dates, maximum/passing-mark validation, draft/open/closed/published lifecycle, and admin-only publication.
-- Added assignment-scoped teacher gradebooks, atomic grade saves, marks validation, audit history, published-result locks, and full-roster publication checks.
-- Added one shared deterministic result-calculation module for screen and PDF data, including absence, exemption, missing marks, totals, averages, grades, and pass/fail status.
-- Added student self-only and parent linked-child published-result views plus protected on-demand PDF report cards generated with `@react-pdf/renderer`.
-- Added secure announcements with role, class, section, and academic-year targets; teacher assigned-section targeting; publication/expiry filtering; and read-only student/parent portal dashboards.
-- Added concise portal dashboards and role navigation for timetables, attendance, results, report cards, announcements, and fee placeholders.
-- Added a server-only, non-blocking optional Resend email abstraction. Delivery remains deliberately disabled until a recipient and notification policy is approved.
-
-## In-progress work
-
-- Complete the linked-Supabase release checklist in `docs/MVP_AUDIT.md` before declaring the merged MVP release-ready.
-- Apply migrations through the announcement migration in a linked Supabase project and execute live role-isolation, publication, grade-lock, report-card, and announcement-visibility checks.
-
-## Remaining work
-
-- Approve the MVP only after real-project migration, Auth, role-isolation, direct-route, attendance, and private-Storage checks pass.
-- Build manual fee record-keeping.
-- Add database, integration, end-to-end, accessibility, and deployment test coverage.
-
-## Important architecture decisions
-
-- Next.js 16 uses `proxy.ts` and asynchronous request APIs.
-- Supabase Auth owns credentials. The service-role key is server-only and reserved for future privileged provisioning.
-- Server Components remain the default for initial reads. Client components are limited to interactive UI and use TanStack Query when client server-state is needed.
-- The two future school brand colors are centralized as `--brand` and `--accent`; components use semantic tokens only.
-- Dashboard placeholders are explicitly labelled whenever timetable, fees, or announcements have no implemented data source.
-- `profiles.id` references `auth.users.id`; passwords and password hashes are never stored in application tables.
-- RLS authorization uses private security-definer helper functions, role/profile links, teacher assignments, and parent-child links. The service-role key is limited to invitation and bootstrap code.
-- Storage buckets are private. Persisted report cards are admin-only; future student and parent report downloads are generated through protected server routes.
-- The admin data-access layer is server-only, requires an active admin profile, and returns minimal DTOs. Interactive admin tables use protected API routes with the same server-side role check and database RLS.
-- Student account invitations are optional. The school record is created or edited independently; an email invitation only links an Auth profile when requested.
-- A section does not have a homeroom-teacher field because the approved normalized schema models teacher assignments by subject and academic year. Capacity is enforced per active academic-year enrollment.
-- Attendance saves use a security-invoker database function. Teachers need a current section assignment; repeated saves correct an existing record rather than duplicating it.
-- Academic years and terms are retained as historical records. A term must stay inside its year and cannot overlap another term. An academic year cannot be shortened to exclude existing term or enrollment dates.
-- Teacher assignments are year-scoped and are the authority for teacher timetable access. Timetable entries inherit teacher, section, and subject context from an assignment and reject section, teacher, and named-room collisions.
-- Exam subject papers belong to an exam, section, and subject, with their date constrained to the selected term. Teachers can save grades only through matching year/section/subject assignments; administrators alone can publish a complete exam.
-- Published results are immutable at the database layer. Public result reads require publication and existing student or parent scope; report cards are generated on demand through the same protected result lookup and never persisted.
-- Result calculations live in `lib/results/calculations.ts` and are passed as a DTO to both screen and PDF rendering, preventing formula drift.
-- Announcement writes use a security-invoker database function rather than trusting client audience fields. Teachers are limited to their own assigned-section audiences; visible reads also enforce publication, schedule, expiry, role, enrollment, and parent-child scope.
-- Student and parent dashboards are intentionally concise, read-only summaries with links to focused module pages. Email configuration never blocks publishing and no email is sent from browser code.
+- Role-scoped Supabase Auth, server guards, private Storage, Zod validation, and protected API routes for Admin, Teacher, Student, and Parent.
+- Student/teacher/class/academic/attendance/timetable/exam/result/report-card/announcement/manual-fee workflows.
+- Migrations 011 and 012 harden privileged writes, private photo ownership, fee-payment serialization, fee-history immutability, transactional student creation, enrollment capacity locking, and grade/exam lifecycle locking.
+- Report-card generation validates UUIDs, is private/no-store, has a Node duration limit, batches attendance by academic year, and has a process-local request limit. Production deployments should also configure Vercel Firewall rate rules.
+- Safe API errors and sanitized server logs. Application logs contain only an error name and operation, never bodies, cookies, identifiers, or database messages.
+- CI runs `npm ci`, lint, typecheck, tests, and production build. Playwright role coverage is available through `npm run test:e2e` when fictional test credentials are supplied.
 
 ## Database migrations
+
+Apply in timestamp order through:
 
 - `20260802000100_create_school_schema.sql`
 - `20260802000200_add_integrity_and_security_helpers.sql`
@@ -92,112 +31,45 @@ Complete the student and parent portals and implement announcement management (m
 - `20260802000700_strengthen_academics_and_timetables.sql`
 - `20260802000800_add_exam_gradebook_and_publication_workflows.sql`
 - `20260803000900_secure_announcements_and_portals.sql`
+- `20260803001000_complete_fee_management_and_reports.sql`
+- `20260804001100_harden_privileged_workflows.sql`
+- `20260804001200_strengthen_data_integrity.sql`
 
 ## Implemented routes
 
-- `/` redirects to `/login`
-- `/login`
-- `/unauthorized`
-- `/admin`
-- `/teacher`
-- `/student`
-- `/parent`
-- `/admin/students`
-- `/admin/teachers`
-- `/admin/classes`
-- `/admin/attendance`
-- `/admin/academics`
-- `/admin/exams`
-- `/admin/announcements`
-- `/teacher/attendance`
-- `/teacher/academics`
-- `/teacher/grades`
-- `/teacher/grades/[id]`
-- `/teacher/announcements`
-- `/student/attendance`
-- `/student/timetable`
-- `/student/results`
-- `/student/announcements`
-- `/parent/attendance`
-- `/parent/timetable`
-- `/parent/results`
-- `/parent/announcements`
-- `/dashboard`
-- `/auth/callback`
-- `/auth/signout`
+- Admin: `/admin`, `/admin/students`, `/admin/teachers`, `/admin/classes`, `/admin/academics`, `/admin/attendance`, `/admin/exams`, `/admin/announcements`, `/admin/fees`, `/admin/reports`.
+- Teacher: `/teacher`, `/teacher/attendance`, `/teacher/academics`, `/teacher/grades`, `/teacher/announcements`.
+- Student: `/student`, `/student/attendance`, `/student/timetable`, `/student/results`, `/student/announcements`, `/student/fees`.
+- Parent: `/parent`, `/parent/attendance`, `/parent/timetable`, `/parent/results`, `/parent/announcements`, `/parent/fees`.
 
 ## Environment variables
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `NEXT_PUBLIC_SITE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY` server-only
-- `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` only while running the initial-admin bootstrap command
-- Optional server-only announcement email configuration: `RESEND_API_KEY` and `ANNOUNCEMENT_FROM_EMAIL`
+- Public: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`.
+- Server-only: `SUPABASE_SERVICE_ROLE_KEY`.
+- Bootstrap only: `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, `ADMIN_LAST_NAME`.
+- Optional and currently non-delivering announcement email: `RESEND_API_KEY`, `ANNOUNCEMENT_FROM_EMAIL`.
+- E2E only: `E2E_BASE_URL` plus fictional `E2E_{ADMIN,TEACHER,STUDENT,PARENT}_{EMAIL,PASSWORD}` values.
 
-## Known issues
+## Known issues and release gate
 
-- Migrations and RLS policies through `20260803000900` could not be applied locally because this runtime has no Docker/Postgres installation and the npm Supabase CLI package has no Windows binary.
-- Database policy execution, Auth invitation confirmation, and logout require a configured Supabase project for runtime verification.
-- The current database test file checks schema and policy presence; role-isolation execution tests are pending a local or linked Supabase environment.
-- Profile-image upload requires a linked student account and still needs live private-Storage policy verification.
-- Migration, RLS, invitation, account-link, capacity, attendance, direct-route, and Storage behavior cannot be executed in this Windows runtime without a linked Supabase project. This prevents a release or tag claim.
-- `npm audit` reports three high-severity dependency findings. Review them before production deployment; do not apply a forced upgrade without compatibility verification.
-- The sample report-card PDF parsed as a one-page document with expected text. PNG rendering could not be completed because the bundled Poppler launcher cannot find its native executable in this managed Windows environment.
-- Announcement email is currently a safe no-op even when Resend variables are configured; recipient resolution and a duplicate-notification policy still require product approval.
-- `npm run lint` passes but reports a React Compiler advisory for React Hook Form `watch` in announcement management. Refactor it to explicit local state before treating lint output as warning-free.
-- The older admin dashboard and unused legacy role-dashboard copy still contain stale placeholder wording for announcements; the active student and parent portals are current.
+- This Windows workspace cannot run Supabase migrations, pgTAP, real Auth, RLS isolation, private Storage, or browser E2E without a linked project.
+- `npm audit` requires registry access. Resolve all accepted high/critical advisories before production deployment.
+- Process-local API throttling is defense in depth, not distributed protection. Configure Vercel Firewall rate limits for report-card and invitation endpoints.
+- Announcement email remains an intentional no-op pending approved recipient, opt-out, retry, and abuse policies.
 
-## Test and build status
+## Validation status
 
-2026-08-03: `npm run lint`, `npm run test` (21 tests), `npm run typecheck`, and `npm run build` passed. Static tests cover route/API guards, RLS-policy presence, server-only service-role usage, safe seed data, filters, attendance/enrollment, academic/timetable validation, grade limits/calculations/publication, result/report-card scope, and announcement targeting/visibility. Lint emits the known React Hook Form advisory. Database pgTAP and live RLS/Auth tests remain pending a Supabase database environment.
+On 2026-08-04: `npm run lint`, `npm run typecheck`, `npm run test` (28 tests), `npm run test:e2e -- --list`, and `npm run build` passed. Playwright browser execution, pgTAP execution, live RLS tests, and visual QA remain pending a disposable Supabase environment.
 
 ## Latest important commits
 
-- `11a0acd` chore: initialize application foundation
-- `5e0e2d5` feat: add shared application shell
-- `d98d1a1` feat: add normalized school database schema
-- `440bf35` feat: add row level security policies
-- `7202191` feat: integrate role based authentication
-- `a5ace2a` fix: make initial admin bootstrap executable
-- `05bd9d8` docs: document database and admin setup
-- `d6378cc` docs: record authentication foundation verification
-- `e1e4ade` Merge pull request #2 from ShoaibShuja/feat/auth-database-foundation
-- `224b365` feat: add secure admin record data layer
-- `fa0571b` feat: add admin record management screens
-- `038504e` test: cover admin record contracts
-- `b828b23` fix: enforce filtered enrollment records
-- `8fbe45d` feat: add secure attendance data workflows
-- `71c1063` feat: add role attendance and dashboard screens
-- `8007c43` docs: document attendance dashboards
-- `bd0d6cf` fix: stabilize safe MVP demonstration data
-- `7274b85` docs: record MVP stabilization audit
-- `c04a5b9` docs: record release seed stabilization
-- `e3a1047` Merge pull request #5 from ShoaibShuja/release/mvp
-- `4f2b535` docs: refresh continuation state
-- `5eb5145` feat: add academic structure and timetable workflows
-- `77d4ed8` feat: add exams gradebooks and report cards
-- `b48b63e` docs: record exam and report card workflows
-- `9b50117` feat: add secure announcements and portal dashboards
-- `294c633` docs: document announcements and portal access
-- `45a5038` Merge pull request #8 from ShoaibShuja/feat/portals-announcements
+- `c405c1d` fix: harden privileged database workflows
+- `d73ef61` fix: strengthen transactional data integrity
+- `2219fe7` perf: batch report data and harden fee filters
+- `0060a1a` fix: secure API responses and request handling
+- `107cce9` test: add production hardening coverage
+- `0932adc` ci: add production quality workflow
 
 ## Recommended next prompt
 
-## UI and UX polish update
-
-- Current branch: `feat/ui-ux-polish`.
-- Shared UI refinements: semantic neutral branding retained, responsive shell and mobile drawer, skip link, focus/touch states, reduced-motion support, responsive page-header actions, accessible table scrolling, associated form errors, and viewport-safe dialogs.
-- Visual QA checklist: `docs/UI_UX_REVIEW.md`. No final light-mode brand colors were provided, so no final colors were invented.
-- Pending: run a live browser accessibility scan and route-by-route visual verification with representative data after Supabase is connected.
-
-Complete live Supabase verification for migration `20260803001000_complete_fee_management_and_reports.sql`, including admin-only fee writes, overpayment rejection, student self-only access, parent linked-child access, status refreshes, dashboard metrics, and report filters. Then complete the outstanding MVP audit and deployment checks.
-
-## Fee management and reporting update
-
-- Current branch: `feat/fees-reporting`.
-- Added migration `20260803001000_complete_fee_management_and_reports.sql` to extend fee types, add record/payment attribution and payment method, enforce RPC write authorization, prevent overpayment, and synchronize statuses.
-- Added admin fee management, student and parent read-only fee pages, fee navigation, compact report entry points, and dashboard fee/announcement operations.
-- Added fee-status and dashboard contract tests. On 2026-08-03, lint passed with the pre-existing React Hook Form advisory; tests passed (25), typecheck passed, and production build passed. Live Supabase verification remains required.
-
-On `feat/fees-reporting`, first apply migrations through `20260803000900` to a non-production linked Supabase project and complete `docs/MVP_AUDIT.md` plus live announcement checks: assigned/unassigned teacher targets, role/class/section/year audiences, draft/future/expired hiding, and student/parent linked-child isolation. Also verify grades, publication locks, and direct report-card access. If every check passes, tag the merged MVP as `v0.1.0-mvp`; then implement manual fee record-keeping without weakening existing RLS boundaries.
+Provision a disposable Supabase project, apply migrations 001-012, execute the pgTAP/RLS role matrix and environment-gated Playwright suite, then perform preview and production smoke tests before release approval.

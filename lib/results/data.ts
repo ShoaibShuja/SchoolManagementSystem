@@ -9,7 +9,7 @@ import type { ExamItem, ExamSetup, ExamSubjectItem, Gradebook, GradebookRow, Stu
 
 type ExamInput = z.infer<typeof examSchema>; type ExamSubjectInput = z.infer<typeof examSubjectSchema>; type GradeSaveInput = z.infer<typeof gradeSaveSchema>;
 export class ResultError extends Error {}
-function fail(error: { message: string; code?: string } | null) { if (!error) return; if (error.code === "23505") throw new ResultError("That exam, subject, or grade already exists."); if (error.code === "23503") throw new ResultError("This record is still in use and cannot be removed."); throw new ResultError(error.message || "The result record could not be saved."); }
+function fail(error: { message: string; code?: string } | null) { if (!error) return; if (error.code === "23505") throw new ResultError("That exam, subject, or grade already exists."); if (error.code === "23503") throw new ResultError("This record is still in use and cannot be removed."); throw new ResultError("The result request could not be completed."); }
 const name = (row: { first_name: string; last_name: string }) => `${row.first_name} ${row.last_name}`.trim();
 const asNumber = (value: number | string | null) => value === null ? null : Number(value);
 
@@ -64,7 +64,25 @@ async function getStudentResults(studentId: string): Promise<StudentResultBundle
   const supabase = await createClient(); const { data: student, error: studentError } = await supabase.from("students").select("id, first_name, last_name, admission_number").eq("id", studentId).single(); fail(studentError); if (!student) throw new ResultError("Student record was not found.");
   const { data: examSubjects, error } = await supabase.from("exam_subjects").select("id, maximum_marks, passing_marks, sections!inner(name, classes!inner(name)), subjects!inner(name, code), exams!inner(id, name, status, updated_at, terms!inner(name, academic_year_id, academic_years!inner(name))), grade_entries!left(marks, status)").eq("grade_entries.student_id", studentId).eq("exams.status", "published").order("exam_date", { ascending: false }); fail(error);
   const grouped = new Map<string, Record<string, unknown>[]>(); for (const row of (examSubjects ?? []) as unknown as Record<string, unknown>[]) { const exam = row.exams as { id: string }; const entries = grouped.get(exam.id) ?? []; entries.push(row); grouped.set(exam.id, entries); }
-  const results = await Promise.all([...grouped.values()].map(async (rows) => { const exam = rows[0].exams as { id: string; name: string; status: string; updated_at: string; terms: { name: string; academic_year_id: string; academic_years: { name: string } } }; const { data: attendance, error: attendanceError } = await supabase.from("attendance_records").select("status").eq("student_id", studentId).eq("academic_year_id", exam.terms.academic_year_id); fail(attendanceError); const result = buildStudentResult(exam, rows, attendance ?? []); return { ...result, publishedAt: exam.updated_at }; }));
+  const academicYearIds = [...new Set([...grouped.values()].map((rows) => {
+    const exam = rows[0].exams as { terms: { academic_year_id: string } };
+    return exam.terms.academic_year_id;
+  }))];
+  const { data: attendanceRows, error: attendanceError } = academicYearIds.length
+    ? await supabase.from("attendance_records").select("academic_year_id, status").eq("student_id", studentId).in("academic_year_id", academicYearIds)
+    : { data: [], error: null };
+  fail(attendanceError);
+  const attendanceByYear = new Map<string, { status: string }[]>();
+  for (const attendance of attendanceRows ?? []) {
+    const entries = attendanceByYear.get(attendance.academic_year_id) ?? [];
+    entries.push({ status: attendance.status });
+    attendanceByYear.set(attendance.academic_year_id, entries);
+  }
+  const results = [...grouped.values()].map((rows) => {
+    const exam = rows[0].exams as { id: string; name: string; status: string; updated_at: string; terms: { name: string; academic_year_id: string; academic_years: { name: string } } };
+    const result = buildStudentResult(exam, rows, attendanceByYear.get(exam.terms.academic_year_id) ?? []);
+    return { ...result, publishedAt: exam.updated_at };
+  });
   return { studentId: student.id, studentName: name(student), admissionNumber: student.admission_number, results };
 }
 

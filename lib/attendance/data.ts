@@ -10,7 +10,7 @@ import type { attendanceQuerySchema, attendanceSaveSchema } from "@/lib/attendan
 type SaveInput = z.infer<typeof attendanceSaveSchema>;
 type QueryInput = z.infer<typeof attendanceQuerySchema>;
 
-function fail(error: { message: string; code?: string } | null) { if (error) throw new Error(error.code === "23505" ? "Attendance for this student has already been saved." : error.message); }
+function fail(error: { message: string; code?: string } | null) { if (error) throw new Error(error.code === "23505" ? "Attendance for this student has already been saved." : "Attendance could not be completed."); }
 function displayName(row: { first_name: string; last_name: string }) { return `${row.first_name} ${row.last_name}`.trim(); }
 
 export async function getTeacherSections(): Promise<AttendanceSection[]> {
