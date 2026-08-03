@@ -184,6 +184,13 @@ Complete the student and parent portals and implement announcement management (m
 
 ## Recommended next prompt
 
+## UI and UX polish update
+
+- Current branch: `feat/ui-ux-polish`.
+- Shared UI refinements: semantic neutral branding retained, responsive shell and mobile drawer, skip link, focus/touch states, reduced-motion support, responsive page-header actions, accessible table scrolling, associated form errors, and viewport-safe dialogs.
+- Visual QA checklist: `docs/UI_UX_REVIEW.md`. No final light-mode brand colors were provided, so no final colors were invented.
+- Pending: run a live browser accessibility scan and route-by-route visual verification with representative data after Supabase is connected.
+
 Complete live Supabase verification for migration `20260803001000_complete_fee_management_and_reports.sql`, including admin-only fee writes, overpayment rejection, student self-only access, parent linked-child access, status refreshes, dashboard metrics, and report filters. Then complete the outstanding MVP audit and deployment checks.
 
 ## Fee management and reporting update
