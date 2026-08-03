@@ -1,79 +1,56 @@
 # Project State
 
-## Current phase
+## Production release status
 
-Production hardening is complete in source. Release approval is blocked only on applying migrations 001-012 and completing live Supabase, Storage, browser, and deployment checks in isolated environments.
+Source release candidate complete. **Do not deploy to production yet.** Release approval requires the live verification gates below in a disposable Supabase project and Vercel Preview, followed by a production smoke test.
 
-## Current branch and last completed prompt
+## Branch and release commits
 
-- Branch: `main` (one local documentation commit ahead of `origin/main`)
-- Prompt: Production hardening, CI/CD, operations, and release verification.
+- Final branch: `release/v1-production`
+- Release code baseline: `2b3d21c` (`chore: update release dependencies`)
+- Handover documentation: this release branch after the final documentation commit
 
-## Completed work
+## Feature summary
 
-- Role-scoped Supabase Auth, server guards, private Storage, Zod validation, and protected API routes for Admin, Teacher, Student, and Parent.
-- Student/teacher/class/academic/attendance/timetable/exam/result/report-card/announcement/manual-fee workflows.
-- Migrations 011 and 012 harden privileged writes, private photo ownership, fee-payment serialization, fee-history immutability, transactional student creation, enrollment capacity locking, and grade/exam lifecycle locking.
-- Report-card generation validates UUIDs, is private/no-store, has a Node duration limit, batches attendance by academic year, and has a process-local request limit. Production deployments should also configure Vercel Firewall rate rules.
-- Safe API errors and sanitized server logs. Application logs contain only an error name and operation, never bodies, cookies, identifiers, or database messages.
-- CI runs `npm ci`, lint, typecheck, tests, and production build. Playwright role coverage is available through `npm run test:e2e` when fictional test credentials are supplied.
+- Fixed Admin, Teacher, Student, and Parent roles with server authorization and Supabase RLS.
+- Student and teacher records; classes, sections, academic years, terms, subjects, assignments, and enrollments.
+- Attendance, timetable, exams, gradebooks, published results, private PDF report cards, and announcements.
+- Read-only student and linked-child parent portals.
+- Admin-only manual fee records and payment history, including overpayment prevention and due-date-aware statuses.
+- Admin dashboard with active totals, attendance rate, fee status, and announcements.
 
-## Database migrations
+Excluded features remain excluded: online payments, library, transport, hostel, payroll/full HR, inventory, multi-school, LMS, video conferencing, SMS, biometric/RFID attendance, AI, predictive analytics, native apps, configurable permissions, and i18n.
 
-Apply in timestamp order through:
+## Migration status
 
-- `20260802000100_create_school_schema.sql`
-- `20260802000200_add_integrity_and_security_helpers.sql`
-- `20260802000300_enable_row_level_security.sql`
-- `20260802000400_create_private_storage_policies.sql`
-- `20260802000500_support_admin_record_management.sql`
-- `20260802000600_add_attendance_workflows.sql`
-- `20260802000700_strengthen_academics_and_timetables.sql`
-- `20260802000800_add_exam_gradebook_and_publication_workflows.sql`
-- `20260803000900_secure_announcements_and_portals.sql`
-- `20260803001000_complete_fee_management_and_reports.sql`
-- `20260804001100_harden_privileged_workflows.sql`
-- `20260804001200_strengthen_data_integrity.sql`
+- Source migrations: present and ordered from `20260802000100_create_school_schema.sql` through `20260804001200_strengthen_data_integrity.sql`.
+- Live status: unverified. Apply all 12 migrations only in timestamp order; never edit an applied migration.
+- pgTAP gates: `supabase/tests/database_foundation.test.sql` and `supabase/tests/production_hardening.test.sql`; execution requires a linked disposable Supabase database.
 
-## Implemented routes
+## Test status, 2026-08-04
 
-- Admin: `/admin`, `/admin/students`, `/admin/teachers`, `/admin/classes`, `/admin/academics`, `/admin/attendance`, `/admin/exams`, `/admin/announcements`, `/admin/fees`, `/admin/reports`.
-- Teacher: `/teacher`, `/teacher/attendance`, `/teacher/academics`, `/teacher/grades`, `/teacher/announcements`.
-- Student: `/student`, `/student/attendance`, `/student/timetable`, `/student/results`, `/student/announcements`, `/student/fees`.
-- Parent: `/parent`, `/parent/attendance`, `/parent/timetable`, `/parent/results`, `/parent/announcements`, `/parent/fees`.
+- `npm ci --ignore-scripts`: passed; 0 vulnerabilities reported.
+- `npm audit --omit=dev`: passed; 0 vulnerabilities.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test`: passed, 28/28 tests.
+- `npm run test:e2e -- --list`: passed; 3 role-access tests collected.
+- `npm run build`: passed with Next.js 16.3.0.
+- Live migration/pgTAP, Auth/RLS/Storage isolation, browser E2E, accessibility scan, mobile visual QA, and deployment smoke testing: pending a disposable environment and fictional accounts.
 
-## Environment variables
+## Deployment status
 
-- Public: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`.
-- Server-only: `SUPABASE_SERVICE_ROLE_KEY`.
-- Bootstrap only: `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, `ADMIN_LAST_NAME`.
-- Optional and currently non-delivering announcement email: `RESEND_API_KEY`, `ANNOUNCEMENT_FROM_EMAIL`.
-- E2E only: `E2E_BASE_URL` plus fictional `E2E_{ADMIN,TEACHER,STUDENT,PARENT}_{EMAIL,PASSWORD}` values.
+- `vercel.json` and GitHub Actions are present and source-reviewed.
+- Configure separate Supabase projects and environment values for Preview and Production. Public `NEXT_PUBLIC_*` values are embedded at build time and must match the target environment.
+- Before launch, configure Supabase Auth redirect URLs, private Storage buckets, Vercel Firewall rate limits for report-card and invitation endpoints, backups/PITR, and the custom domain.
 
-## Known issues and release gate
+## Known limitations and maintenance priorities
 
-- This Windows workspace cannot run Supabase migrations, pgTAP, real Auth, RLS isolation, private Storage, or browser E2E without a linked project.
-- `npm audit` requires registry access. Resolve all accepted high/critical advisories before production deployment.
-- Process-local API throttling is defense in depth, not distributed protection. Configure Vercel Firewall rate limits for report-card and invitation endpoints.
-- Announcement email remains an intentional no-op pending approved recipient, opt-out, retry, and abuse policies.
+1. Complete the pending live release gates before approving production.
+2. Process-local API throttling is supplementary only; retain Vercel Firewall controls.
+3. Announcement email is intentionally inactive until recipient, opt-out, retry, and abuse policies are approved.
+4. Review dependencies monthly, back up before every migration or bulk change, and test restore quarterly.
 
-## Validation status
+## Recommended next action
 
-On 2026-08-04: `npm run lint`, `npm run typecheck`, `npm run test` (28 tests), `npm run test:e2e -- --list`, and `npm run build` passed. Playwright browser execution, pgTAP execution, live RLS tests, and visual QA remain pending a disposable Supabase environment.
-
-## Latest important commits
-
-- `c405c1d` fix: harden privileged database workflows
-- `d73ef61` fix: strengthen transactional data integrity
-- `2219fe7` perf: batch report data and harden fee filters
-- `0060a1a` fix: secure API responses and request handling
-- `107cce9` test: add production hardening coverage
-- `0932adc` ci: add production quality workflow
-- `4bf76d7` docs: add production operations guide
-- `eabc486` fix: qualify payment locking query
-- `9c3a3aa` Merge pull request #11 from ShoaibShuja/chore/production-hardening
-- `4bc7659` docs: refresh production hardening state
-
-## Recommended next prompt
-
-Provision a disposable Supabase project, apply migrations 001-012, execute the pgTAP/RLS role matrix and environment-gated Playwright suite, then perform preview and production smoke tests before release approval.
+Provision a disposable Supabase project and Vercel Preview; apply migrations 001-012; execute pgTAP, RLS/Storage isolation, fictional-account Playwright, accessibility, mobile visual, and rollback smoke tests. Approve production only when each gate has recorded evidence.
