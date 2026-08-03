@@ -159,7 +159,7 @@ Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typec
 - **Login redirects to unauthorized:** verify an active `profiles` row has the intended fixed role.
 - **Invitation fails:** check server-only service-role key, exact `NEXT_PUBLIC_SITE_URL`, and Supabase Auth callback URLs.
 - **Storage upload fails:** verify private bucket policy, object ownership path, allowed JPEG/PNG/WebP type, and 5 MB photo limit.
-- **Migration fails:** stop promotion. Investigate in non-production and add a new corrective migration; never edit a migration already applied elsewhere.
+- **Migration fails:** stop promotion. Investigate in non-production and add a new corrective migration; never edit a migration already applied elsewhere. If the privileged-workflows migration reports `text = uuid` for Storage ownership, use the current source version, which casts `auth.uid()` to text for `storage.objects.owner_id`.
 - **Report card fails:** verify a published, complete result and student/parent scope. Check Vercel Firewall and sanitized logs.
 - **A parent sees no child:** verify the administrator created the correct guardian-child link and the child remains active.
 
