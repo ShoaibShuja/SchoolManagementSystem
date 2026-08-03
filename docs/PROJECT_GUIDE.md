@@ -186,6 +186,13 @@ The future primary and accent school colors are centralized in `app/globals.css`
 
 ## Deployment overview
 
+## Branding, layout, and mobile use
+
+- School colors are centralized as semantic tokens in `app/globals.css`. Replace only `--brand`, `--brand-foreground`, `--accent`, and their supporting tokens after the final accessible light-mode colors are approved. Do not place raw color values in page components.
+- Pages use one shared content width, consistent page headers, compact cards, and responsive gutters. Tables scroll horizontally on narrow screens instead of hiding columns.
+- On a phone, use the menu button to open navigation, then select a section. Attendance and grade entry use stacked student records so their controls remain usable by touch.
+- Form validation appears next to the related field. Use the keyboard-visible focus ring to move through actions, and use Escape or Close to leave a dialog.
+
 ## Fee management and reports
 
 1. Administrators open **Fees** to create active fee types and manual fee records. Choose the student, academic year, optional term, amount due, and due date.
