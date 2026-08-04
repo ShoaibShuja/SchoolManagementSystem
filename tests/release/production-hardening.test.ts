@@ -7,14 +7,19 @@ async function source(path: string) {
 }
 
 test("hardening migration makes fee and teacher announcement writes authoritative", async () => {
-  const migration = await source("supabase/migrations/20260804001100_harden_privileged_workflows.sql");
+  const [migration, storagePolicies] = await Promise.all([
+    source("supabase/migrations/20260804001100_harden_privileged_workflows.sql"),
+    source("supabase/migrations/20260802000400_create_private_storage_policies.sql"),
+  ]);
+  assert.doesNotMatch(migration, /\0/);
   assert.match(migration, /drop policy if exists admin_manage_fee_records/);
   assert.match(migration, /drop policy if exists admin_manage_fee_payments/);
   assert.match(migration, /record_fee_payment[\s\S]*security definer/);
   assert.match(migration, /for update/);
   assert.match(migration, /drop policy if exists announcements_insert_authorized/);
   assert.match(migration, /save_announcement[\s\S]*security definer/);
-  assert.match(migration, /owner_id = \(select auth\.uid\(\)::text\)/);
+  assert.doesNotMatch(migration, /storage\.objects/);
+  assert.match(storagePolicies, /owner_id = \(select auth\.uid\(\)::text\)/);
 });
 
 test("integrity migration serializes critical writes and preserves grade history", async () => {

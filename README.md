@@ -41,7 +41,7 @@ Never commit `.env` files or expose the service-role key to browser code.
 
 ## Migrations, testing, and deployment
 
-Migrations are forward-only. Promote them development → Preview → Production, take a backup before Production, verify migration history, and never edit a migration that has been applied. The included privileged-workflows migration handles Supabase Storage's text `owner_id` by comparing it with `auth.uid()::text`.
+Migrations are forward-only. Promote them development → Preview → Production, take a backup before Production, verify migration history, and never edit a migration that has been applied. Storage buckets and private Storage policies are set up by migration `004`; workflow hardening begins in migration `011`.
 
 GitHub Actions runs clean install, lint, typecheck, tests, and build. Vercel uses `vercel.json`; configure separate Supabase projects and environment values for Preview and Production, then complete role, RLS, Storage, accessibility, mobile, and deployment smoke checks before release.
 
