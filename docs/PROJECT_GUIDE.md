@@ -61,11 +61,22 @@ Roles are fixed. Do not attempt to create custom roles in the database or interf
 1. Create separate Supabase projects for development/preview and production. Do not use demonstration data in production.
 2. In each project, apply all migration files in `supabase/migrations/` in timestamp order, ending with `20260804001200_strengthen_data_integrity.sql`.
 3. Create the private Storage buckets named by the migrations, and confirm their policies applied. Keep `profile-photos`, `school-documents`, and `report-cards` private.
-4. Put the project URL, publishable key, and service-role key in the correct local or Vercel environment. Keep the service-role key server-only.
-5. Temporarily set the three `ADMIN_*` values, run `npm run bootstrap:admin`, then remove those three values.
-6. Accept the Supabase invitation, set the password in Supabase Auth, and sign in.
+4. For a disposable development or Preview project only, optionally paste `supabase/seed.sql` into the Supabase SQL Editor. It creates fictional Afghan school data and test accounts for all portals. Do not run it in Production or alongside real school data.
+5. Put the project URL, publishable key, and service-role key in the correct local or Vercel environment. Keep the service-role key server-only.
+6. If you did not use the demo seed, temporarily set the three `ADMIN_*` values, run `npm run bootstrap:admin`, then remove those three values.
+7. Accept the Supabase invitation, set the password in Supabase Auth, and sign in.
 
 If the script says an administrator already exists, use that account; do not run the bootstrap again.
+
+## Load fictional demo data
+
+The optional `supabase/seed.sql` file is for demonstrations, development, preview testing, and role-permission checks. It is not an import template for a real school.
+
+- Apply migrations 001-012 first, then paste the entire seed file into the Supabase SQL Editor and run it once.
+- The seed creates 48 fictional students in Grade 7-9 sections A and B, eight teachers, 48 guardians, attendance history, a weekly timetable, results, fees and payments, plus published, targeted, and draft announcements.
+- It creates representative fixed-role accounts. The file header lists the login emails and shared non-production password. Change or remove these accounts before exposing the project to anyone outside the test team.
+- The seed uses stable IDs and can be run again for most records. Published grades and payment history are only inserted when missing, so their historical rows are not changed.
+- Use the confirmation query at the end of the script to verify expected record counts. Delete or reset the disposable project rather than attempting to turn demonstration data into Production data.
 
 ## Deploy
 
@@ -119,6 +130,12 @@ Also check `--brand-foreground` and `--accent-foreground` for readable text cont
 The signed-in dashboards use a centralized visual system in `app/globals.css`. Alongside the main `--brand` and `--accent` values, the `--dashboard-*` tokens control the deep navigation color and the soft blue, mint, lilac, and warm metric-card accents. Change these tokens together only after checking text contrast and all four role dashboards on phone and desktop widths.
 
 Dashboard information and permissions do not change when its appearance is updated: Admin, Teacher, Student, and Parent data is still controlled by server authorization and Supabase Row Level Security.
+
+## Light and dark mode
+
+Use the sun/moon control in the top-right application header to switch between light and dark mode. The control is also available on the sign-in and access-restricted screens. On a first visit, the application follows the device's current color preference. Once someone chooses a mode, the browser remembers it under the key `jahan-color-theme` and restores it before the page is shown. This preference is private to that browser and device; it is not stored in the school database or shared with other accounts.
+
+The dark palette is defined beside the light palette in `app/globals.css` under `html[data-theme="dark"]`. Update semantic tokens, not individual component colors, and check contrast for text, form fields, focus rings, status labels, and both dashboard card palettes in each mode.
 
 ## Change the school name and school information
 
@@ -190,3 +207,4 @@ Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typec
 3. Production hardening added RLS/server guards, private Storage, authoritative fee/announcement workflows, transaction and lifecycle locks, safe API errors, secure PDF responses, CI, Vercel configuration, and release tests.
 4. The v1 release branch upgraded Next.js to 16.3.0, clearing the production dependency audit, and finalized this owner handover.
 5. The dashboard visual refresh introduced a responsive command-center style for all four roles, with central color tokens, clearer daily actions, and touch-friendly cards.
+6. Persistent light/dark mode added a device-aware initial preference, a browser-saved explicit choice, pre-render theme application, and an accessible theme toggle across protected and public access screens.

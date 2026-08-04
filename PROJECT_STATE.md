@@ -6,20 +6,24 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 
 ## Current phase
 
-- Current phase: dashboard visual refresh complete in source; ready for review and merge after the existing live release gates.
-- Last completed prompt: improve the dashboard UI with a premium, colorful, mobile-responsive design.
-- In progress: no application changes. Live Supabase, browser E2E, accessibility, responsive visual, backup/restore, and deployment verification remain pending.
+- Current phase: fictional demo-data seed complete in source; ready for disposable Supabase validation alongside the existing release gates.
+- Last completed prompt: create a medium-high volume fictional Afghan school seed for every scoped module.
+- In progress: validate the new seed against a disposable Supabase project. Live Supabase, browser E2E, accessibility, responsive visual, backup/restore, and deployment verification remain pending.
 
 ## Branch and release commits
 
-- Current branch: `feat/dashboard-visual-refresh`
-- Last code merge: `432c341` (`Merge pull request #14 from ShoaibShuja/codex/fix-storage-owner-id`)
+- Current branch: `feat/afghan-school-demo-seed`
+- Current feature commit: `ec29573` (`feat: add Afghan school demo seed`)
+- Last code merge: `d217248` (`Merge pull request #15 from ShoaibShuja/feat/dashboard-visual-refresh`)
+- Previous feature commit: `4104219` (`feat: add persistent dark mode`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
 - Handover documentation: `b41e7a9` and `c7fc8e1`.
 
 ## Latest important changes
 
 - Dashboard visual refresh: refreshed the authenticated shell and Admin, Teacher, Student, and Parent dashboards with centralized semantic dashboard tokens, a responsive briefing layout, colorful metric cards, and touch-friendly shortcut cards. Existing role scopes, API contracts, and server-rendered data access are unchanged.
+- Persistent color theme: added a token-driven premium dark palette and an accessible light/dark toggle in signed-in and public access screens. The first visit follows the device preference; an explicit choice is saved in browser storage as `jahan-color-theme` and applied before rendering to avoid a color flash.
+- Fictional demo seed: replaced the minimal local seed with a SQL Editor-ready, repeatable fictional Afghan school dataset. It covers fixed-role Auth accounts, Grade 7-9 academic setup, 48 students and guardians, eight teachers, enrollment, assignments, conflict-free timetable lessons, attendance, published and draft gradebooks, fee records/payments, and announcements. It is explicitly limited to disposable development or Preview projects.
 - `432c341` / `7ab2f3d`: kept migration 011 limited to privileged fee and announcement workflows; private Storage policies remain in migration 004.
 - `5251efe` / `ef7a114`: corrected the Storage policy owner-id cast.
 - `b33cf57`: allows React's development-only CSP evaluation without adding `'unsafe-eval'` to production.
@@ -51,9 +55,12 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 - `npm run test:e2e -- --list`: passed; 3 role-access tests collected.
 - `npm run build`: passed with Next.js 16.3.0.
 - Dashboard visual-refresh checks on 2026-08-04: `npm run lint`, `npm run typecheck`, `npm run test` (28/28), and `npm run build` all passed.
+- Dark-mode checks on 2026-08-04: `npm run lint`, `npm run typecheck`, `npm run test` (28/28), and `npm run build` passed. A local Chrome mobile check at 390px confirmed dark-mode persistence through a page reload.
+- Demo-seed source checks on 2026-08-04: `git diff --check`, `npm run lint`, `npm run typecheck`, `npm run test` (28/28), and `npm run build` passed. SQL execution is still pending a disposable Supabase database.
 - `20260804001100_harden_privileged_workflows.sql` was statically checked after removing its redundant Storage policy redefinition; live migration verification remains pending a linked disposable database.
 - Development CSP allows React's required `'unsafe-eval'` only when `NODE_ENV=development`; production does not include it.
 - Live migration/pgTAP, Auth/RLS/Storage isolation, browser E2E, accessibility scan, mobile visual QA, and deployment smoke testing: pending a disposable environment and fictional accounts.
+- The expanded `supabase/seed.sql` has source-level validation only. Execute it in a disposable Supabase project after migrations 001-012 and record the SQL Editor confirmation counts before relying on it for browser testing.
 
 ## Deployment status
 
@@ -70,4 +77,4 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 
 ## Recommended next action
 
-Provision a disposable Supabase project and Vercel Preview; apply migrations 001-012; execute pgTAP, RLS/Storage isolation, fictional-account Playwright, accessibility, mobile visual, and rollback smoke tests. Approve production only when each gate has recorded evidence.
+Provision a disposable Supabase project and Vercel Preview; apply migrations 001-012 and `supabase/seed.sql`; execute pgTAP, RLS/Storage isolation, fictional-account Playwright, accessibility, mobile visual, and rollback smoke tests. Approve production only when each gate has recorded evidence.
