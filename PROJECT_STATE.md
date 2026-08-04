@@ -13,7 +13,8 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 ## Branch and release commits
 
 - Current branch: `feat/persistent-dark-mode`
-- Last code merge: `432c341` (`Merge pull request #14 from ShoaibShuja/codex/fix-storage-owner-id`)
+- Last code merge: `d217248` (`Merge pull request #15 from ShoaibShuja/feat/dashboard-visual-refresh`)
+- Current feature commit: `4104219` (`feat: add persistent dark mode`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
 - Handover documentation: `b41e7a9` and `c7fc8e1`.
 
