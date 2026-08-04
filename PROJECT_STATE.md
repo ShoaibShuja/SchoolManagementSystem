@@ -7,8 +7,15 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 ## Branch and release commits
 
 - Current branch: `main`
+- Last code merge: `432c341` (`Merge pull request #14 from ShoaibShuja/codex/fix-storage-owner-id`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
-- Handover documentation: this release branch after the final documentation commit
+- Handover documentation: `b41e7a9` and `c7fc8e1`.
+
+## Latest important changes
+
+- `432c341` / `7ab2f3d`: kept migration 011 limited to privileged fee and announcement workflows; private Storage policies remain in migration 004.
+- `5251efe` / `ef7a114`: corrected the Storage policy owner-id cast.
+- `b33cf57`: allows React's development-only CSP evaluation without adding `'unsafe-eval'` to production.
 
 ## Feature summary
 
