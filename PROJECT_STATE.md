@@ -13,8 +13,9 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 ## Branch and release commits
 
 - Current branch: `feat/afghan-school-demo-seed`
+- Current feature commit: `ec29573` (`feat: add Afghan school demo seed`)
 - Last code merge: `d217248` (`Merge pull request #15 from ShoaibShuja/feat/dashboard-visual-refresh`)
-- Current feature commit: `4104219` (`feat: add persistent dark mode`)
+- Previous feature commit: `4104219` (`feat: add persistent dark mode`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
 - Handover documentation: `b41e7a9` and `c7fc8e1`.
 
