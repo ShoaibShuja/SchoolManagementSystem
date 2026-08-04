@@ -23,7 +23,7 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 
 ## Migration status
 
-- Source migrations: present and ordered from `20260802000100_create_school_schema.sql` through `20260804001200_strengthen_data_integrity.sql`. The unpublished `20260804001100_harden_privileged_workflows.sql` compares `storage.objects.owner_id` with `auth.uid()::text`, matching Supabase Storage's text column.
+- Source migrations: present and ordered from `20260802000100_create_school_schema.sql` through `20260804001200_strengthen_data_integrity.sql`. Storage buckets and policies belong exclusively to migration `20260802000400_create_private_storage_policies.sql`; `20260804001100_harden_privileged_workflows.sql` contains only fee and announcement workflow hardening.
 - Live status: unverified. Apply all 12 migrations only in timestamp order; never edit an applied migration.
 - pgTAP gates: `supabase/tests/database_foundation.test.sql` and `supabase/tests/production_hardening.test.sql`; execution requires a linked disposable Supabase database.
 
@@ -36,7 +36,7 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 - `npm run test`: passed, 28/28 tests.
 - `npm run test:e2e -- --list`: passed; 3 role-access tests collected.
 - `npm run build`: passed with Next.js 16.3.0.
-- `20260804001100_harden_privileged_workflows.sql` was statically checked after correcting the Storage owner-ID type comparison; live migration verification remains pending a linked disposable database.
+- `20260804001100_harden_privileged_workflows.sql` was statically checked after removing its redundant Storage policy redefinition; live migration verification remains pending a linked disposable database.
 - Development CSP allows React's required `'unsafe-eval'` only when `NODE_ENV=development`; production does not include it.
 - Live migration/pgTAP, Auth/RLS/Storage isolation, browser E2E, accessibility scan, mobile visual QA, and deployment smoke testing: pending a disposable environment and fictional accounts.
 
