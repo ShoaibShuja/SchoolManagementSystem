@@ -2,6 +2,8 @@
 
 Single-school management application for fixed Admin, Teacher, Student, and Parent roles. It provides records, academic setup, attendance, timetable, exams/results/PDF report cards, announcements, portals, manual fees, and an admin dashboard.
 
+The authenticated experience uses a responsive, token-driven dashboard design shared across all roles. School colors remain centralized in `app/globals.css`.
+
 ## Stack
 
 Next.js 16 App Router, TypeScript, Tailwind CSS, shadcn/ui, Supabase Auth/Postgres/Storage, TanStack Query, React Hook Form, Zod, and `@react-pdf/renderer`.

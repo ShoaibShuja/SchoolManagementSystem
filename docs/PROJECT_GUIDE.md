@@ -114,6 +114,12 @@ The two main colors are centralized in `app/globals.css`:
 
 Also check `--brand-foreground` and `--accent-foreground` for readable text contrast. Use an accessible color-contrast checker, test buttons, focus outlines, and small mobile text, then run lint, typecheck, tests, and a build.
 
+## Dashboard appearance
+
+The signed-in dashboards use a centralized visual system in `app/globals.css`. Alongside the main `--brand` and `--accent` values, the `--dashboard-*` tokens control the deep navigation color and the soft blue, mint, lilac, and warm metric-card accents. Change these tokens together only after checking text contrast and all four role dashboards on phone and desktop widths.
+
+Dashboard information and permissions do not change when its appearance is updated: Admin, Teacher, Student, and Parent data is still controlled by server authorization and Supabase Row Level Security.
+
 ## Change the school name and school information
 
 The current school name is intentionally simple and code-based, not a database setting. Update these places together:
@@ -183,3 +189,4 @@ Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typec
 2. UI and accessibility polish added responsive navigation, touch-friendly forms, readable tables, semantic tokens, focus visibility, and reduced-motion support.
 3. Production hardening added RLS/server guards, private Storage, authoritative fee/announcement workflows, transaction and lifecycle locks, safe API errors, secure PDF responses, CI, Vercel configuration, and release tests.
 4. The v1 release branch upgraded Next.js to 16.3.0, clearing the production dependency audit, and finalized this owner handover.
+5. The dashboard visual refresh introduced a responsive command-center style for all four roles, with central color tokens, clearer daily actions, and touch-friendly cards.
