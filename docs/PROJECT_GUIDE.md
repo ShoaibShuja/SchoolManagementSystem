@@ -120,6 +120,12 @@ The signed-in dashboards use a centralized visual system in `app/globals.css`. A
 
 Dashboard information and permissions do not change when its appearance is updated: Admin, Teacher, Student, and Parent data is still controlled by server authorization and Supabase Row Level Security.
 
+## Light and dark mode
+
+Use the sun/moon control in the top-right application header to switch between light and dark mode. The control is also available on the sign-in and access-restricted screens. On a first visit, the application follows the device's current color preference. Once someone chooses a mode, the browser remembers it under the key `jahan-color-theme` and restores it before the page is shown. This preference is private to that browser and device; it is not stored in the school database or shared with other accounts.
+
+The dark palette is defined beside the light palette in `app/globals.css` under `html[data-theme="dark"]`. Update semantic tokens, not individual component colors, and check contrast for text, form fields, focus rings, status labels, and both dashboard card palettes in each mode.
+
 ## Change the school name and school information
 
 The current school name is intentionally simple and code-based, not a database setting. Update these places together:
@@ -190,3 +196,4 @@ Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typec
 3. Production hardening added RLS/server guards, private Storage, authoritative fee/announcement workflows, transaction and lifecycle locks, safe API errors, secure PDF responses, CI, Vercel configuration, and release tests.
 4. The v1 release branch upgraded Next.js to 16.3.0, clearing the production dependency audit, and finalized this owner handover.
 5. The dashboard visual refresh introduced a responsive command-center style for all four roles, with central color tokens, clearer daily actions, and touch-friendly cards.
+6. Persistent light/dark mode added a device-aware initial preference, a browser-saved explicit choice, pre-render theme application, and an accessible theme toggle across protected and public access screens.
