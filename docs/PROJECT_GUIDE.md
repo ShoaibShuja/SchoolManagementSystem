@@ -75,7 +75,7 @@ The optional `supabase/seed.sql` file is for demonstrations, development, previe
 - Apply migrations 001-012 first, then paste the entire seed file into the Supabase SQL Editor and run it once.
 - The seed creates 48 fictional students in Grade 7-9 sections A and B, eight teachers, 48 guardians, attendance history, a weekly timetable, results, fees and payments, plus published, targeted, and draft announcements.
 - It creates representative fixed-role accounts. The file header lists the login emails and shared non-production password. Change or remove these accounts before exposing the project to anyone outside the test team.
-- The seed uses stable IDs and can be run again for most records. Published grades and payment history are only inserted when missing, so their historical rows are not changed.
+- The seed resolves academic years, terms, classes, sections, subjects, exams, and fee types by their names or other business keys. It can therefore coexist with the earlier lightweight seed instead of assuming the same UUIDs. Published grades and payment history are only inserted when missing, so their historical rows are not changed.
 - Use the confirmation query at the end of the script to verify expected record counts. Delete or reset the disposable project rather than attempting to turn demonstration data into Production data.
 
 ## Deploy
