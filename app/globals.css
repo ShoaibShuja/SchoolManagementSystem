@@ -20,6 +20,12 @@
   --destructive: oklch(0.56 0.18 28);
   --destructive-foreground: oklch(0.985 0.002 28);
   --info: oklch(0.53 0.09 245);
+  --dashboard-ink: oklch(0.24 0.045 255);
+  --dashboard-ink-deep: oklch(0.18 0.04 255);
+  --dashboard-aura: oklch(0.9 0.055 225);
+  --dashboard-lilac: oklch(0.93 0.055 300);
+  --dashboard-sun: oklch(0.94 0.08 85);
+  --dashboard-mint: oklch(0.93 0.055 165);
   --radius: 0.7rem;
 }
 
@@ -42,6 +48,12 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-info: var(--info);
+  --color-dashboard-ink: var(--dashboard-ink);
+  --color-dashboard-ink-deep: var(--dashboard-ink-deep);
+  --color-dashboard-aura: var(--dashboard-aura);
+  --color-dashboard-lilac: var(--dashboard-lilac);
+  --color-dashboard-sun: var(--dashboard-sun);
+  --color-dashboard-mint: var(--dashboard-mint);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -59,3 +71,34 @@ button, [role="button"] { min-height: 2.5rem; }
 input, select, textarea { font-size: 16px; }
 @media (prefers-reduced-motion: reduce) { *, ::before, ::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
 ::selection { background: color-mix(in oklab, var(--brand) 18%, transparent); }
+
+@layer components {
+  .app-canvas {
+    background:
+      radial-gradient(circle at 88% -8%, color-mix(in oklab, var(--dashboard-aura) 72%, transparent) 0, transparent 30rem),
+      radial-gradient(circle at 16% 100%, color-mix(in oklab, var(--dashboard-lilac) 38%, transparent) 0, transparent 28rem),
+      var(--background);
+  }
+
+  .app-sidebar {
+    background:
+      radial-gradient(circle at 10% 0%, color-mix(in oklab, var(--info) 34%, transparent) 0, transparent 17rem),
+      linear-gradient(165deg, var(--dashboard-ink), var(--dashboard-ink-deep));
+  }
+
+  .dashboard-hero {
+    background:
+      radial-gradient(circle at 92% 10%, color-mix(in oklab, var(--dashboard-sun) 72%, transparent) 0, transparent 13rem),
+      radial-gradient(circle at 75% 100%, color-mix(in oklab, var(--dashboard-aura) 40%, transparent) 0, transparent 16rem),
+      linear-gradient(125deg, var(--dashboard-ink), var(--brand));
+    box-shadow: 0 24px 48px color-mix(in oklab, var(--dashboard-ink) 22%, transparent);
+  }
+
+  .dashboard-surface {
+    box-shadow: 0 12px 28px color-mix(in oklab, var(--dashboard-ink) 7%, transparent);
+  }
+
+  .dashboard-stat {
+    box-shadow: 0 10px 22px color-mix(in oklab, var(--dashboard-ink) 6%, transparent);
+  }
+}
