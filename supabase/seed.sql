@@ -18,6 +18,14 @@ begin;
 select pg_advisory_xact_lock(hashtext('jahan-school-fictional-demo-seed-v1'));
 set local row_security = off;
 
+-- Resolve records by their business keys, not just the fixed demonstration IDs.
+-- This lets the seed coexist with the original lightweight local seed and a
+-- partially configured disposable project.
+create temporary table jahan_demo_seed_refs (
+  key text primary key,
+  id uuid not null
+) on commit drop;
+
 -- Auth accounts are deliberately limited to representative users. Every
 -- student, guardian, and teacher has a school record, while the accounts below
 -- exercise each portal and common RLS paths.
@@ -113,32 +121,45 @@ on conflict (id) do update set
   phone = excluded.phone, status = excluded.status, updated_at = timezone('utc', now());
 
 insert into public.academic_years (id, name, starts_on, ends_on, status)
-values ('b1000000-0000-0000-0000-000000000001', '2026-2027', '2026-03-21', '2027-03-20', 'current')
-on conflict (id) do update set name = excluded.name, starts_on = excluded.starts_on, ends_on = excluded.ends_on, status = excluded.status;
+select 'b1000000-0000-0000-0000-000000000001', '2026-2027', date '2026-03-21', date '2027-03-20',
+  case when exists (select 1 from public.academic_years where status = 'current' and name <> '2026-2027') then 'planned'::public.academic_year_status else 'current'::public.academic_year_status end
+on conflict (name) do update set
+  starts_on = excluded.starts_on,
+  ends_on = excluded.ends_on,
+  status = case when exists (select 1 from public.academic_years current_year where current_year.status = 'current' and current_year.id <> public.academic_years.id) then public.academic_years.status else excluded.status end;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'academic_year', id from public.academic_years where name = '2026-2027';
 
 insert into public.terms (id, academic_year_id, name, starts_on, ends_on, status)
 values
-  ('b2000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'First Term', '2026-03-21', '2026-08-31', 'current'),
-  ('b2000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000001', 'Second Term', '2026-09-01', '2026-12-31', 'planned'),
-  ('b2000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000001', 'Third Term', '2027-01-01', '2027-03-20', 'planned')
-on conflict (id) do update set name = excluded.name, starts_on = excluded.starts_on, ends_on = excluded.ends_on, status = excluded.status;
+  ('b2000000-0000-0000-0000-000000000001', (select id from jahan_demo_seed_refs where key = 'academic_year'), 'First Term', '2026-03-21', '2026-08-31', 'current'),
+  ('b2000000-0000-0000-0000-000000000002', (select id from jahan_demo_seed_refs where key = 'academic_year'), 'Second Term', '2026-09-01', '2026-12-31', 'planned'),
+  ('b2000000-0000-0000-0000-000000000003', (select id from jahan_demo_seed_refs where key = 'academic_year'), 'Third Term', '2027-01-01', '2027-03-20', 'planned')
+on conflict (academic_year_id, name) do update set starts_on = excluded.starts_on, ends_on = excluded.ends_on, status = excluded.status;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'first_term', id from public.terms where academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year') and name = 'First Term';
 
 insert into public.classes (id, name, display_order)
 values
   ('c1000000-0000-0000-0000-000000000001', 'Grade 7', 7),
   ('c1000000-0000-0000-0000-000000000002', 'Grade 8', 8),
   ('c1000000-0000-0000-0000-000000000003', 'Grade 9', 9)
-on conflict (id) do update set name = excluded.name, display_order = excluded.display_order;
+on conflict (name) do update set display_order = excluded.display_order;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'class_' || display_order::text, id from public.classes where name in ('Grade 7', 'Grade 8', 'Grade 9');
 
 insert into public.sections (id, class_id, name, capacity)
-values
-  ('c2000000-0000-0000-0000-000000000001', 'c1000000-0000-0000-0000-000000000001', 'A', 35),
-  ('c2000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000001', 'B', 35),
-  ('c2000000-0000-0000-0000-000000000003', 'c1000000-0000-0000-0000-000000000002', 'A', 35),
-  ('c2000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000002', 'B', 35),
-  ('c2000000-0000-0000-0000-000000000005', 'c1000000-0000-0000-0000-000000000003', 'A', 35),
-  ('c2000000-0000-0000-0000-000000000006', 'c1000000-0000-0000-0000-000000000003', 'B', 35)
-on conflict (id) do update set class_id = excluded.class_id, name = excluded.name, capacity = excluded.capacity;
+select ('c2000000-0000-0000-0000-' || lpad(section_data.ordinal::text, 12, '0'))::uuid, (select id from jahan_demo_seed_refs where key = 'class_' || section_data.display_order::text), section_data.name, 35
+from (values (1, 7, 'A'), (2, 7, 'B'), (3, 8, 'A'), (4, 8, 'B'), (5, 9, 'A'), (6, 9, 'B')) as section_data(ordinal, display_order, name)
+on conflict (class_id, name) do update set capacity = excluded.capacity;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'section_' || section_data.ordinal::text, section_record.id
+from (values (1, 7, 'A'), (2, 7, 'B'), (3, 8, 'A'), (4, 8, 'B'), (5, 9, 'A'), (6, 9, 'B')) as section_data(ordinal, display_order, name)
+join public.sections section_record on section_record.class_id = (select id from jahan_demo_seed_refs where key = 'class_' || section_data.display_order::text) and section_record.name = section_data.name;
 
 insert into public.subjects (id, code, name, description, is_active)
 values
@@ -150,7 +171,12 @@ values
   ('c3000000-0000-0000-0000-000000000006', 'PAS', 'Pashto', 'Pashto language, reading, and composition.', true),
   ('c3000000-0000-0000-0000-000000000007', 'SOC', 'Social Studies', 'Afghan history, geography, and civic education.', true),
   ('c3000000-0000-0000-0000-000000000008', 'COMP', 'Computer Studies', 'Digital literacy and responsible technology use.', true)
-on conflict (id) do update set code = excluded.code, name = excluded.name, description = excluded.description, is_active = excluded.is_active;
+on conflict (name) do update set code = excluded.code, description = excluded.description, is_active = excluded.is_active;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'subject_' || subject_data.ordinal::text, subject_record.id
+from (values (1, 'MATH'), (2, 'ENG'), (3, 'DARI'), (4, 'SCI'), (5, 'ISL'), (6, 'PAS'), (7, 'SOC'), (8, 'COMP')) as subject_data(ordinal, code)
+join public.subjects subject_record on subject_record.code = subject_data.code and subject_record.is_active;
 
 insert into public.teachers (id, profile_id, employee_number, first_name, last_name, phone, email, qualification, employment_started_on, status)
 values
@@ -219,8 +245,8 @@ on conflict (parent_id, student_id) do update set relationship = excluded.relati
 insert into public.student_enrollments (id, student_id, academic_year_id, section_id, enrolled_on, status)
 select
   ('e2000000-0000-0000-0000-' || lpad(right(s.admission_number, 3), 12, '0'))::uuid,
-  s.id, 'b1000000-0000-0000-0000-000000000001',
-  ('c2000000-0000-0000-0000-' || lpad((((right(s.admission_number, 3)::integer - 1) / 8) + 1)::text, 12, '0'))::uuid,
+  s.id, (select id from jahan_demo_seed_refs where key = 'academic_year'),
+  (select id from jahan_demo_seed_refs where key = 'section_' || (((right(s.admission_number, 3)::integer - 1) / 8) + 1)::text),
   date '2026-03-21', 'active'
 from public.students s
 where s.admission_number like 'JMS-2026-%'
@@ -232,7 +258,7 @@ on conflict (id) do update set student_id = excluded.student_id, academic_year_i
 insert into public.teacher_assignments (id, teacher_id, section_id, subject_id, academic_year_id)
 select
   ('d2000000-0000-0000-0000-' || lpad((((teacher_data.ordinal - 1) * 6) + section_data.ordinal)::text, 12, '0'))::uuid,
-  teacher_data.id, section_data.id, subject_data.id, 'b1000000-0000-0000-0000-000000000001'
+  teacher_data.id, section_data.id, subject_data.id, (select id from jahan_demo_seed_refs where key = 'academic_year')
 from (
   values
     (1, 'd1000000-0000-0000-0000-000000000001'::uuid), (2, 'd1000000-0000-0000-0000-000000000002'::uuid),
@@ -242,36 +268,36 @@ from (
 ) as teacher_data(ordinal, id)
 join (
   values
-    (1, 'c2000000-0000-0000-0000-000000000001'::uuid), (2, 'c2000000-0000-0000-0000-000000000002'::uuid),
-    (3, 'c2000000-0000-0000-0000-000000000003'::uuid), (4, 'c2000000-0000-0000-0000-000000000004'::uuid),
-    (5, 'c2000000-0000-0000-0000-000000000005'::uuid), (6, 'c2000000-0000-0000-0000-000000000006'::uuid)
+    (1, (select id from jahan_demo_seed_refs where key = 'section_1')), (2, (select id from jahan_demo_seed_refs where key = 'section_2')),
+    (3, (select id from jahan_demo_seed_refs where key = 'section_3')), (4, (select id from jahan_demo_seed_refs where key = 'section_4')),
+    (5, (select id from jahan_demo_seed_refs where key = 'section_5')), (6, (select id from jahan_demo_seed_refs where key = 'section_6'))
 ) as section_data(ordinal, id) on true
 join (
   values
-    (1, 'c3000000-0000-0000-0000-000000000001'::uuid), (2, 'c3000000-0000-0000-0000-000000000002'::uuid),
-    (3, 'c3000000-0000-0000-0000-000000000003'::uuid), (4, 'c3000000-0000-0000-0000-000000000004'::uuid),
-    (5, 'c3000000-0000-0000-0000-000000000005'::uuid), (6, 'c3000000-0000-0000-0000-000000000006'::uuid),
-    (7, 'c3000000-0000-0000-0000-000000000007'::uuid), (8, 'c3000000-0000-0000-0000-000000000008'::uuid)
+    (1, (select id from jahan_demo_seed_refs where key = 'subject_1')), (2, (select id from jahan_demo_seed_refs where key = 'subject_2')),
+    (3, (select id from jahan_demo_seed_refs where key = 'subject_3')), (4, (select id from jahan_demo_seed_refs where key = 'subject_4')),
+    (5, (select id from jahan_demo_seed_refs where key = 'subject_5')), (6, (select id from jahan_demo_seed_refs where key = 'subject_6')),
+    (7, (select id from jahan_demo_seed_refs where key = 'subject_7')), (8, (select id from jahan_demo_seed_refs where key = 'subject_8'))
 ) as subject_data(ordinal, id) on subject_data.ordinal = teacher_data.ordinal
 on conflict do nothing;
 
 insert into public.timetable_entries (id, academic_year_id, section_id, teacher_assignment_id, teacher_id, day_of_week, start_time, end_time, room)
 select
   ('d3000000-0000-0000-0000-' || lpad((((section_data.ordinal - 1) * 25) + ((day_data.day_of_week - 1) * 5) + period_data.period + 1)::text, 12, '0'))::uuid,
-  'b1000000-0000-0000-0000-000000000001', section_data.id, assignment_data.id, assignment_data.teacher_id,
+  (select id from jahan_demo_seed_refs where key = 'academic_year'), section_data.id, assignment_data.id, assignment_data.teacher_id,
   day_data.day_of_week, time '08:00' + (period_data.period * interval '50 minutes'), time '08:45' + (period_data.period * interval '50 minutes'),
   section_data.room
 from (
   values
-    (1, 'c2000000-0000-0000-0000-000000000001'::uuid, 'Room 7A'), (2, 'c2000000-0000-0000-0000-000000000002'::uuid, 'Room 7B'),
-    (3, 'c2000000-0000-0000-0000-000000000003'::uuid, 'Room 8A'), (4, 'c2000000-0000-0000-0000-000000000004'::uuid, 'Room 8B'),
-    (5, 'c2000000-0000-0000-0000-000000000005'::uuid, 'Room 9A'), (6, 'c2000000-0000-0000-0000-000000000006'::uuid, 'Room 9B')
+    (1, (select id from jahan_demo_seed_refs where key = 'section_1'), 'Room 7A'), (2, (select id from jahan_demo_seed_refs where key = 'section_2'), 'Room 7B'),
+    (3, (select id from jahan_demo_seed_refs where key = 'section_3'), 'Room 8A'), (4, (select id from jahan_demo_seed_refs where key = 'section_4'), 'Room 8B'),
+    (5, (select id from jahan_demo_seed_refs where key = 'section_5'), 'Room 9A'), (6, (select id from jahan_demo_seed_refs where key = 'section_6'), 'Room 9B')
 ) as section_data(ordinal, id, room)
 cross join (select generate_series(1, 5) as day_of_week) day_data
 cross join (select generate_series(0, 4) as period) period_data
 join public.teacher_assignments assignment_data on assignment_data.section_id = section_data.id
-  and assignment_data.academic_year_id = 'b1000000-0000-0000-0000-000000000001'
-  and assignment_data.subject_id = ('c3000000-0000-0000-0000-' || lpad((((section_data.ordinal - 1 + day_data.day_of_week - 1 + period_data.period) % 8) + 1)::text, 12, '0'))::uuid
+  and assignment_data.academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year')
+  and assignment_data.subject_id = (select id from jahan_demo_seed_refs where key = 'subject_' || (((section_data.ordinal - 1 + day_data.day_of_week - 1 + period_data.period) % 8) + 1)::text)
 on conflict do nothing;
 
 insert into public.attendance_records (student_id, section_id, academic_year_id, attendance_date, status, remarks, marked_by)
@@ -288,15 +314,21 @@ select
 from public.student_enrollments enrollment
 join public.students student_record on student_record.id = enrollment.student_id
 cross join unnest(array[date '2026-07-19', date '2026-07-20', date '2026-07-21', date '2026-07-22', date '2026-07-23', date '2026-07-25', date '2026-07-26', date '2026-07-27', date '2026-07-28', date '2026-07-29', date '2026-08-02', date '2026-08-03']) with ordinality as attendance_dates(attendance_date, ordinal)
-where enrollment.academic_year_id = 'b1000000-0000-0000-0000-000000000001' and enrollment.status = 'active'
+where enrollment.academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year') and enrollment.status = 'active'
 on conflict (student_id, section_id, academic_year_id, attendance_date) do update set
   status = excluded.status, remarks = excluded.remarks, marked_by = excluded.marked_by, updated_at = timezone('utc', now());
 
 insert into public.exams (id, term_id, name, starts_on, ends_on, status)
 values
-  ('b3000000-0000-0000-0000-000000000001', 'b2000000-0000-0000-0000-000000000001', 'First Term Mid-Year Assessment', '2026-07-12', '2026-07-23', 'open'),
-  ('b3000000-0000-0000-0000-000000000002', 'b2000000-0000-0000-0000-000000000001', 'First Term Final Examination', '2026-08-16', '2026-08-27', 'draft')
-on conflict (id) do nothing;
+  ('b3000000-0000-0000-0000-000000000001', (select id from jahan_demo_seed_refs where key = 'first_term'), 'First Term Mid-Year Assessment', '2026-07-12', '2026-07-23', 'open'),
+  ('b3000000-0000-0000-0000-000000000002', (select id from jahan_demo_seed_refs where key = 'first_term'), 'First Term Final Examination', '2026-08-16', '2026-08-27', 'draft')
+on conflict (term_id, name) do nothing;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'mid_year_exam', id from public.exams where term_id = (select id from jahan_demo_seed_refs where key = 'first_term') and name = 'First Term Mid-Year Assessment';
+
+insert into jahan_demo_seed_refs (key, id)
+select 'final_exam', id from public.exams where term_id = (select id from jahan_demo_seed_refs where key = 'first_term') and name = 'First Term Final Examination';
 
 insert into public.exam_subjects (id, exam_id, section_id, subject_id, maximum_marks, passing_marks, exam_date)
 select
@@ -304,15 +336,15 @@ select
   exam_data.id, section_data.id, subject_data.id, 100, 40, exam_data.starts_on + (subject_data.ordinal - 1)
 from (
   values
-    (1, 'b3000000-0000-0000-0000-000000000001'::uuid, date '2026-07-12'),
-    (2, 'b3000000-0000-0000-0000-000000000002'::uuid, date '2026-08-16')
+    (1, (select id from jahan_demo_seed_refs where key = 'mid_year_exam'), date '2026-07-12'),
+    (2, (select id from jahan_demo_seed_refs where key = 'final_exam'), date '2026-08-16')
 ) as exam_data(ordinal, id, starts_on)
 cross join (
-  select ordinal, ('c2000000-0000-0000-0000-' || lpad(ordinal::text, 12, '0'))::uuid as id
+  select ordinal, (select id from jahan_demo_seed_refs where key = 'section_' || ordinal::text) as id
   from generate_series(1, 6) as series(ordinal)
 ) section_data
 cross join (
-  select ordinal, ('c3000000-0000-0000-0000-' || lpad(ordinal::text, 12, '0'))::uuid as id
+  select ordinal, (select id from jahan_demo_seed_refs where key = 'subject_' || ordinal::text) as id
   from generate_series(1, 8) as series(ordinal)
 ) subject_data
 on conflict do nothing;
@@ -325,13 +357,13 @@ select
   case when (right(student_record.admission_number, 3)::integer + subject_ordinal) % 47 = 0 then 'Absent with guardian notice' when (right(student_record.admission_number, 3)::integer + subject_ordinal) % 53 = 0 then 'Approved exemption' else null end,
   teacher_profile.id
 from public.exam_subjects exam_subject
-join public.teacher_assignments assignment_data on assignment_data.section_id = exam_subject.section_id and assignment_data.subject_id = exam_subject.subject_id and assignment_data.academic_year_id = 'b1000000-0000-0000-0000-000000000001'
+join public.teacher_assignments assignment_data on assignment_data.section_id = exam_subject.section_id and assignment_data.subject_id = exam_subject.subject_id and assignment_data.academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year')
 join public.teachers teacher_record on teacher_record.id = assignment_data.teacher_id
 join public.profiles teacher_profile on teacher_profile.id = teacher_record.profile_id
-join public.student_enrollments enrollment on enrollment.section_id = exam_subject.section_id and enrollment.academic_year_id = 'b1000000-0000-0000-0000-000000000001' and enrollment.status = 'active'
+join public.student_enrollments enrollment on enrollment.section_id = exam_subject.section_id and enrollment.academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year') and enrollment.status = 'active'
 join public.students student_record on student_record.id = enrollment.student_id
 cross join lateral (select right(exam_subject.subject_id::text, 12)::integer as subject_ordinal) subject_data
-where exam_subject.exam_id = 'b3000000-0000-0000-0000-000000000001'
+where exam_subject.exam_id = (select id from jahan_demo_seed_refs where key = 'mid_year_exam')
   and not exists (
     select 1 from public.grade_entries existing_grade
     where existing_grade.exam_subject_id = exam_subject.id and existing_grade.student_id = enrollment.student_id
@@ -341,33 +373,38 @@ on conflict do nothing;
 -- Publish only after every seeded mid-year grade has been inserted. The final
 -- examination remains a draft so grade-entry and publication states are both visible.
 update public.exams set status = 'published', updated_at = timezone('utc', now())
-where id = 'b3000000-0000-0000-0000-000000000001' and status in ('draft', 'open');
+where id = (select id from jahan_demo_seed_refs where key = 'mid_year_exam') and status in ('draft', 'open');
 
 insert into public.fee_types (id, name, description, frequency, academic_year_id, default_amount, is_active)
 values
-  ('c4000000-0000-0000-0000-000000000001', 'Registration Fee', 'Annual registration and student record administration.', 'annual', 'b1000000-0000-0000-0000-000000000001', 4500, true),
-  ('c4000000-0000-0000-0000-000000000002', 'First Term Tuition', 'First-term classroom instruction contribution.', 'termly', 'b1000000-0000-0000-0000-000000000001', 5500, true),
-  ('c4000000-0000-0000-0000-000000000003', 'Examination Fee', 'Assessment materials and examination administration.', 'termly', 'b1000000-0000-0000-0000-000000000001', 600, true),
-  ('c4000000-0000-0000-0000-000000000004', 'Stationery Contribution', 'Optional classroom stationery and activity materials.', 'one_time', 'b1000000-0000-0000-0000-000000000001', 900, true)
-on conflict (id) do update set
+  ('c4000000-0000-0000-0000-000000000001', 'Registration Fee', 'Annual registration and student record administration.', 'annual', (select id from jahan_demo_seed_refs where key = 'academic_year'), 4500, true),
+  ('c4000000-0000-0000-0000-000000000002', 'First Term Tuition', 'First-term classroom instruction contribution.', 'termly', (select id from jahan_demo_seed_refs where key = 'academic_year'), 5500, true),
+  ('c4000000-0000-0000-0000-000000000003', 'Examination Fee', 'Assessment materials and examination administration.', 'termly', (select id from jahan_demo_seed_refs where key = 'academic_year'), 600, true),
+  ('c4000000-0000-0000-0000-000000000004', 'Stationery Contribution', 'Optional classroom stationery and activity materials.', 'one_time', (select id from jahan_demo_seed_refs where key = 'academic_year'), 900, true)
+on conflict (name) do update set
   name = excluded.name, description = excluded.description, frequency = excluded.frequency,
   academic_year_id = excluded.academic_year_id, default_amount = excluded.default_amount, is_active = excluded.is_active;
+
+insert into jahan_demo_seed_refs (key, id)
+select 'fee_type_' || fee_type_data.ordinal::text, fee_type_record.id
+from (values (1, 'Registration Fee'), (2, 'First Term Tuition'), (3, 'Examination Fee'), (4, 'Stationery Contribution')) as fee_type_data(ordinal, name)
+join public.fee_types fee_type_record on fee_type_record.name = fee_type_data.name;
 
 insert into public.fee_records (id, student_id, fee_type_id, academic_year_id, term_id, amount_due, due_date, status, notes, created_by)
 select
   ('c5000000-0000-0000-0000-' || lpad((((right(student_record.admission_number, 3)::integer - 1) * 4) + fee_type.ordinal)::text, 12, '0'))::uuid,
-  student_record.id, fee_type.id, 'b1000000-0000-0000-0000-000000000001',
-  case when fee_type.ordinal in (2, 3) then 'b2000000-0000-0000-0000-000000000001'::uuid else null end,
+  student_record.id, fee_type.id, (select id from jahan_demo_seed_refs where key = 'academic_year'),
+  case when fee_type.ordinal in (2, 3) then (select id from jahan_demo_seed_refs where key = 'first_term') else null end,
   fee_type.amount_due, fee_type.due_date,
   case when fee_type.due_date < current_date then 'overdue'::public.fee_record_status else 'unpaid'::public.fee_record_status end,
   fee_type.notes, 'a1000000-0000-0000-0000-000000000001'
 from public.students student_record
 cross join (
   values
-    (1, 'c4000000-0000-0000-0000-000000000001'::uuid, 4500::numeric, date '2026-04-15', 'Annual registration record'),
-    (2, 'c4000000-0000-0000-0000-000000000002'::uuid, 5500::numeric, date '2026-07-10', 'First term tuition record'),
-    (3, 'c4000000-0000-0000-0000-000000000003'::uuid, 600::numeric, date '2026-07-05', 'First term examination record'),
-    (4, 'c4000000-0000-0000-0000-000000000004'::uuid, 900::numeric, date '2026-08-15', 'Optional stationery contribution')
+    (1, (select id from jahan_demo_seed_refs where key = 'fee_type_1'), 4500::numeric, date '2026-04-15', 'Annual registration record'),
+    (2, (select id from jahan_demo_seed_refs where key = 'fee_type_2'), 5500::numeric, date '2026-07-10', 'First term tuition record'),
+    (3, (select id from jahan_demo_seed_refs where key = 'fee_type_3'), 600::numeric, date '2026-07-05', 'First term examination record'),
+    (4, (select id from jahan_demo_seed_refs where key = 'fee_type_4'), 900::numeric, date '2026-08-15', 'Optional stationery contribution')
 ) as fee_type(ordinal, id, amount_due, due_date, notes)
 where student_record.admission_number like 'JMS-2026-%'
 on conflict do nothing;
@@ -378,7 +415,7 @@ select
   fee_record.id, 'JMS-REC-REG-' || right(student_record.admission_number, 3), 4500, date '2026-04-10', 'cash', 'a1000000-0000-0000-0000-000000000001', 'Registration payment recorded at the school office'
 from public.fee_records fee_record
 join public.students student_record on student_record.id = fee_record.student_id
-where fee_record.fee_type_id = 'c4000000-0000-0000-0000-000000000001'
+where fee_record.fee_type_id = (select id from jahan_demo_seed_refs where key = 'fee_type_1')
 on conflict do nothing;
 
 insert into public.fee_payments (id, fee_record_id, receipt_number, amount, paid_on, payment_method, recorded_by, notes)
@@ -390,7 +427,7 @@ select
   'a1000000-0000-0000-0000-000000000001', 'First term payment entry'
 from public.fee_records fee_record
 join public.students student_record on student_record.id = fee_record.student_id
-where fee_record.fee_type_id = 'c4000000-0000-0000-0000-000000000002'
+where fee_record.fee_type_id = (select id from jahan_demo_seed_refs where key = 'fee_type_2')
   and right(student_record.admission_number, 3)::integer % 3 <> 0
 on conflict do nothing;
 
@@ -400,7 +437,7 @@ select
   fee_record.id, 'JMS-REC-EXM-' || right(student_record.admission_number, 3), 600, date '2026-07-06', 'cash', 'a1000000-0000-0000-0000-000000000001', 'Examination fee received'
 from public.fee_records fee_record
 join public.students student_record on student_record.id = fee_record.student_id
-where fee_record.fee_type_id = 'c4000000-0000-0000-0000-000000000003'
+where fee_record.fee_type_id = (select id from jahan_demo_seed_refs where key = 'fee_type_3')
   and right(student_record.admission_number, 3)::integer % 4 <> 0
 on conflict do nothing;
 
@@ -422,25 +459,25 @@ values
 on conflict do nothing;
 
 insert into public.announcement_class_audiences (announcement_id, class_id)
-values ('a2000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000003')
+values ('a2000000-0000-0000-0000-000000000004', (select id from jahan_demo_seed_refs where key = 'class_9'))
 on conflict do nothing;
 
 insert into public.announcement_section_audiences (announcement_id, section_id)
-values ('a2000000-0000-0000-0000-000000000003', 'c2000000-0000-0000-0000-000000000001')
+values ('a2000000-0000-0000-0000-000000000003', (select id from jahan_demo_seed_refs where key = 'section_1'))
 on conflict do nothing;
 
 insert into public.announcement_academic_year_audiences (announcement_id, academic_year_id)
-values ('a2000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000001')
+values ('a2000000-0000-0000-0000-000000000004', (select id from jahan_demo_seed_refs where key = 'academic_year'))
 on conflict do nothing;
 
 -- Quick confirmation output for the Supabase SQL editor.
 select
   (select count(*) from public.students where admission_number like 'JMS-2026-%') as seeded_students,
   (select count(*) from public.teachers where employee_number like 'JMS-T-%') as seeded_teachers,
-  (select count(*) from public.student_enrollments where academic_year_id = 'b1000000-0000-0000-0000-000000000001' and status = 'active') as active_enrollments,
-  (select count(*) from public.attendance_records where academic_year_id = 'b1000000-0000-0000-0000-000000000001') as attendance_records,
-  (select count(*) from public.grade_entries ge join public.exam_subjects es on es.id = ge.exam_subject_id where es.exam_id = 'b3000000-0000-0000-0000-000000000001') as mid_year_grade_entries,
-  (select count(*) from public.fee_records where academic_year_id = 'b1000000-0000-0000-0000-000000000001') as fee_records,
+  (select count(*) from public.student_enrollments where academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year') and status = 'active') as active_enrollments,
+  (select count(*) from public.attendance_records where academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year')) as attendance_records,
+  (select count(*) from public.grade_entries ge join public.exam_subjects es on es.id = ge.exam_subject_id where es.exam_id = (select id from jahan_demo_seed_refs where key = 'mid_year_exam')) as mid_year_grade_entries,
+  (select count(*) from public.fee_records where academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year')) as fee_records,
   (select count(*) from public.announcements where id::text like 'a2000000-%') as announcements;
 
 commit;
