@@ -15,8 +15,9 @@ Requires Node.js 20.9+ and a Supabase project.
 1. Copy `.env.example` to `.env.local` and add values.
 2. Run `npm ci`.
 3. Apply `supabase/migrations/` in timestamp order through `20260804001200_strengthen_data_integrity.sql`.
-4. Temporarily set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME`; run `npm run bootstrap:admin`; then remove those values.
-5. Run `npm run dev`.
+4. Optional for a disposable development or Preview project: run `supabase/seed.sql` in the Supabase SQL Editor to load fictional Afghan school demonstration data and test accounts. Never use this seed in Production.
+5. For an empty non-demo project, temporarily set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME`; run `npm run bootstrap:admin`; then remove those values.
+6. Run `npm run dev`.
 
 ## Commands
 
@@ -31,6 +32,10 @@ npm run bootstrap:admin
 ```
 
 `npm run test:e2e` requires `E2E_BASE_URL` and fictional role accounts. Database tests in `supabase/tests/` require a linked disposable Supabase database.
+
+## Fictional demo data
+
+`supabase/seed.sql` creates 48 fictional students across Grade 7-9 sections A/B, eight teachers, 48 guardians, attendance, a conflict-free weekly timetable, published and draft exams, grades, fee records/payments, and targeted announcements. It also creates representative Admin, Teacher, Student, and Parent accounts. The shared non-production password is documented at the top of the SQL file. Apply it only after migrations 001-012 in a disposable project.
 
 ## Environment variables
 
