@@ -180,6 +180,7 @@ Each month, run `npm ci`, `npm audit --omit=dev`, `npm run lint`, `npm run typec
 ## Troubleshooting
 
 - **Login redirects to unauthorized:** verify an active `profiles` row has the intended fixed role.
+- **Login says authentication is not configured:** add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the matching Vercel environment, then redeploy. Public `NEXT_PUBLIC_*` values are compiled into the browser build.
 - **Invitation fails:** check server-only service-role key, exact `NEXT_PUBLIC_SITE_URL`, and Supabase Auth callback URLs.
 - **Storage upload fails:** verify private bucket policy, object ownership path, allowed JPEG/PNG/WebP type, and 5 MB photo limit.
 - **Migration fails:** stop promotion. Investigate in non-production and add a new corrective migration; never edit a migration already applied elsewhere. Storage buckets and their policies are created in migration `004`; run it before later workflow migrations.

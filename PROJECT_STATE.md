@@ -7,7 +7,7 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 ## Current phase
 
 - Current phase: fictional demo-data seed is collision-safe in source; ready for disposable Supabase validation alongside the existing release gates.
-- Last completed prompt: fix the demo seed so it can coexist with the original lightweight seed and pre-existing academic setup records.
+- Last completed prompt: configure Vercel Production Supabase authentication and redeploy the live project.
 - In progress: validate the new seed against a disposable Supabase project. Live Supabase, browser E2E, accessibility, responsive visual, backup/restore, and deployment verification remain pending.
 
 ## Branch and release commits
@@ -46,8 +46,9 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 - Live status: unverified. Apply all 12 migrations only in timestamp order; never edit an applied migration.
 - pgTAP gates: `supabase/tests/database_foundation.test.sql` and `supabase/tests/production_hardening.test.sql`; execution requires a linked disposable Supabase database.
 
-## Test status, 2026-08-04
+## Test status, latest 2026-08-06
 
+- Vercel authentication configuration checks on 2026-08-06: Production environment values were added, the deployment completed successfully, and both live aliases returned `/login` without the authentication-configuration fallback. Local `npm run lint`, `npm run typecheck`, `npm run test` (28/28), and `npm run build` passed.
 - `npm ci --ignore-scripts`: passed; 0 vulnerabilities reported.
 - `npm audit --omit=dev`: passed; 0 vulnerabilities.
 - `npm run lint`: passed.
@@ -66,7 +67,8 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 ## Deployment status
 
 - `vercel.json` and GitHub Actions are present and source-reviewed.
-- Configure separate Supabase projects and environment values for Preview and Production. Public `NEXT_PUBLIC_*` values are embedded at build time and must match the target environment.
+- Vercel Production has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`, and a server-only `SUPABASE_SERVICE_ROLE_KEY`. It was redeployed successfully on 2026-08-06; the live `/login` page no longer shows the authentication-configuration fallback.
+- Configure separate Supabase projects and environment values for Preview. Public `NEXT_PUBLIC_*` values are embedded at build time and must match the target environment.
 - Before launch, configure Supabase Auth redirect URLs, private Storage buckets, Vercel Firewall rate limits for report-card and invitation endpoints, backups/PITR, and the custom domain.
 
 ## Known limitations and maintenance priorities
