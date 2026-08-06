@@ -11,6 +11,13 @@ test("demo seed remains non-personal and satisfies the teacher record contract",
   assert.match(seed, /Demonstration record/);
 });
 
+test("grade-entry validation uses an unambiguous academic-year variable", async () => {
+  const migration = await source("supabase/migrations/20260806001300_fix_grade_entry_validation.sql");
+  assert.match(migration, /exam_academic_year_id uuid/);
+  assert.match(migration, /se\.academic_year_id = exam_academic_year_id/);
+  assert.doesNotMatch(migration, /se\.academic_year_id = academic_year_id/);
+});
+
 test("protected role pages and attendance APIs enforce their intended scope", async () => {
   const [teacherPage, studentPage, parentPage, adminApi, teacherApi] = await Promise.all([
     source("app/(protected)/teacher/attendance/page.tsx"), source("app/(protected)/student/attendance/page.tsx"), source("app/(protected)/parent/attendance/page.tsx"), source("app/api/attendance/admin/route.ts"), source("app/api/attendance/teacher/route.ts"),

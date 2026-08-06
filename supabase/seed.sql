@@ -1,7 +1,7 @@
 -- Jahan School fictional Demonstration record seed
 --
 -- Run only in a disposable local, development, or Preview Supabase project
--- after migrations 001-012. Never run this in Production or against real
+-- after migrations 001-013. Never run this in Production or against real
 -- school records. The data is fictional and uses reserved .example.invalid email domains.
 --
 -- Demo sign-in password for every account below: JahanDemo2026!
@@ -17,6 +17,37 @@ begin;
 
 select pg_advisory_xact_lock(hashtext('jahan-school-fictional-demo-seed-v1'));
 set local row_security = off;
+
+-- Compatibility repair for databases that were migrated through 012 before
+-- migration 013 was available. Keep this definition aligned with migration 013.
+create or replace function private.validate_grade_entry()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  exam_subject_record public.exam_subjects;
+  exam_academic_year_id uuid;
+begin
+  select es.* into exam_subject_record from public.exam_subjects es where es.id = new.exam_subject_id;
+  if new.status = 'graded' and new.marks > exam_subject_record.maximum_marks then
+    raise exception 'Grade marks cannot exceed maximum marks';
+  end if;
+  select term.academic_year_id into exam_academic_year_id
+  from public.exams exam join public.terms term on term.id = exam.term_id
+  where exam.id = exam_subject_record.exam_id;
+  if not exists (
+    select 1 from public.student_enrollments se
+    where se.student_id = new.student_id
+      and se.section_id = exam_subject_record.section_id
+      and se.academic_year_id = exam_academic_year_id
+      and se.status in ('active', 'completed', 'transferred')
+  ) then
+    raise exception 'Grade entry requires a student enrollment in the exam section';
+  end if;
+  return new;
+end;
+$$;
 
 -- Resolve records by their business keys, not just the fixed demonstration IDs.
 -- This lets the seed coexist with the original lightweight local seed and a
