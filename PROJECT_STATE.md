@@ -6,14 +6,14 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 
 ## Current phase
 
-- Current phase: fictional demo-data seed is collision-safe in source; ready for disposable Supabase validation alongside the existing release gates.
-- Last completed prompt: configure Vercel Production Supabase authentication and redeploy the live project.
+- Current phase: fictional demo-data seed and grade-entry validation repair are complete in source; ready for disposable Supabase validation alongside the existing release gates.
+- Last completed prompt: fix the grade-entry trigger ambiguity blocking the fictional school seed.
 - In progress: validate the new seed against a disposable Supabase project. Live Supabase, browser E2E, accessibility, responsive visual, backup/restore, and deployment verification remain pending.
 
 ## Branch and release commits
 
 - Current branch: `main`
-- Current feature commit: `e9d4e49` (`fix: make demo seed reuse existing setup`).
+- Current feature commit: `5207f6d` (`fix: repair grade entry validation trigger`).
 - Last code merge: `d217248` (`Merge pull request #15 from ShoaibShuja/feat/dashboard-visual-refresh`)
 - Previous feature commit: `4104219` (`feat: add persistent dark mode`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
@@ -25,6 +25,7 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 - Persistent color theme: added a token-driven premium dark palette and an accessible light/dark toggle in signed-in and public access screens. The first visit follows the device preference; an explicit choice is saved in browser storage as `jahan-color-theme` and applied before rendering to avoid a color flash.
 - Fictional demo seed: replaced the minimal local seed with a SQL Editor-ready, repeatable fictional Afghan school dataset. It covers fixed-role Auth accounts, Grade 7-9 academic setup, 48 students and guardians, eight teachers, enrollment, assignments, conflict-free timetable lessons, attendance, published and draft gradebooks, fee records/payments, and announcements. It is explicitly limited to disposable development or Preview projects.
 - Collision-safe demo seed: resolves academic years, terms, classes, sections, subjects, exams, and fee types through their business keys before dependent rows are written. It therefore reuses an existing `2026-2027` academic year instead of failing when that name was created by the earlier lightweight seed.
+- Grade-entry validation repair: migration 013 renames the trigger-local academic-year variable, removing the PostgreSQL column/variable ambiguity that blocked grade inserts. The seed applies the same idempotent function definition as a compatibility guard for projects already migrated through 012.
 - `432c341` / `7ab2f3d`: kept migration 011 limited to privileged fee and announcement workflows; private Storage policies remain in migration 004.
 - `5251efe` / `ef7a114`: corrected the Storage policy owner-id cast.
 - `b33cf57`: allows React's development-only CSP evaluation without adding `'unsafe-eval'` to production.
@@ -42,8 +43,8 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 
 ## Migration status
 
-- Source migrations: present and ordered from `20260802000100_create_school_schema.sql` through `20260804001200_strengthen_data_integrity.sql`. Storage buckets and policies belong exclusively to migration `20260802000400_create_private_storage_policies.sql`; `20260804001100_harden_privileged_workflows.sql` contains only fee and announcement workflow hardening.
-- Live status: unverified. Apply all 12 migrations only in timestamp order; never edit an applied migration.
+- Source migrations: present and ordered from `20260802000100_create_school_schema.sql` through `20260806001300_fix_grade_entry_validation.sql`. Storage buckets and policies belong exclusively to migration `20260802000400_create_private_storage_policies.sql`; `20260804001100_harden_privileged_workflows.sql` contains only fee and announcement workflow hardening.
+- Live status: unverified. Apply all 13 migrations only in timestamp order; never edit an applied migration.
 - pgTAP gates: `supabase/tests/database_foundation.test.sql` and `supabase/tests/production_hardening.test.sql`; execution requires a linked disposable Supabase database.
 
 ## Test status, latest 2026-08-06
@@ -62,7 +63,7 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 - `20260804001100_harden_privileged_workflows.sql` was statically checked after removing its redundant Storage policy redefinition; live migration verification remains pending a linked disposable database.
 - Development CSP allows React's required `'unsafe-eval'` only when `NODE_ENV=development`; production does not include it.
 - Live migration/pgTAP, Auth/RLS/Storage isolation, browser E2E, accessibility scan, mobile visual QA, and deployment smoke testing: pending a disposable environment and fictional accounts.
-- The expanded `supabase/seed.sql` has source-level validation only. Execute it in a disposable Supabase project after migrations 001-012 and record the SQL Editor confirmation counts before relying on it for browser testing.
+- The expanded `supabase/seed.sql` has source-level validation only. Execute it in a disposable Supabase project after migrations 001-013 and record the SQL Editor confirmation counts before relying on it for browser testing.
 
 ## Deployment status
 
@@ -80,4 +81,4 @@ Excluded features remain excluded: online payments, library, transport, hostel, 
 
 ## Recommended next action
 
-Provision a disposable Supabase project and Vercel Preview; apply migrations 001-012 and `supabase/seed.sql`; execute pgTAP, RLS/Storage isolation, fictional-account Playwright, accessibility, mobile visual, and rollback smoke tests. Approve production only when each gate has recorded evidence.
+Provision a disposable Supabase project and Vercel Preview; apply migrations 001-013 and `supabase/seed.sql`; execute pgTAP, RLS/Storage isolation, fictional-account Playwright, accessibility, mobile visual, and rollback smoke tests. Approve production only when each gate has recorded evidence.

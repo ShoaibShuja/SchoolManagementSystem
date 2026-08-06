@@ -59,7 +59,7 @@ Roles are fixed. Do not attempt to create custom roles in the database or interf
 ## Connect Supabase and create the first admin
 
 1. Create separate Supabase projects for development/preview and production. Do not use demonstration data in production.
-2. In each project, apply all migration files in `supabase/migrations/` in timestamp order, ending with `20260804001200_strengthen_data_integrity.sql`.
+2. In each project, apply all migration files in `supabase/migrations/` in timestamp order, ending with `20260806001300_fix_grade_entry_validation.sql`.
 3. Create the private Storage buckets named by the migrations, and confirm their policies applied. Keep `profile-photos`, `school-documents`, and `report-cards` private.
 4. For a disposable development or Preview project only, optionally paste `supabase/seed.sql` into the Supabase SQL Editor. It creates fictional Afghan school data and test accounts for all portals. Do not run it in Production or alongside real school data.
 5. Put the project URL, publishable key, and service-role key in the correct local or Vercel environment. Keep the service-role key server-only.
@@ -72,7 +72,7 @@ If the script says an administrator already exists, use that account; do not run
 
 The optional `supabase/seed.sql` file is for demonstrations, development, preview testing, and role-permission checks. It is not an import template for a real school.
 
-- Apply migrations 001-012 first, then paste the entire seed file into the Supabase SQL Editor and run it once.
+- Apply migrations 001-013 first, then paste the entire seed file into the Supabase SQL Editor and run it once. The seed includes the same grade-validation repair as migration 013 for a project that was previously migrated only through 012.
 - The seed creates 48 fictional students in Grade 7-9 sections A and B, eight teachers, 48 guardians, attendance history, a weekly timetable, results, fees and payments, plus published, targeted, and draft announcements.
 - It creates representative fixed-role accounts. The file header lists the login emails and shared non-production password. Change or remove these accounts before exposing the project to anyone outside the test team.
 - The seed resolves academic years, terms, classes, sections, subjects, exams, and fee types by their names or other business keys. It can therefore coexist with the earlier lightweight seed instead of assuming the same UUIDs. Published grades and payment history are only inserted when missing, so their historical rows are not changed.
