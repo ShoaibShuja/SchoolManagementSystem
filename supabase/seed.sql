@@ -50,12 +50,15 @@ end;
 $$;
 
 -- Resolve records by their business keys, not just the fixed demonstration IDs.
--- This lets the seed coexist with the original lightweight local seed and a
--- partially configured disposable project.
-create temporary table jahan_demo_seed_refs (
+-- Use a short-lived, RLS-protected public table rather than a temporary table:
+-- Supabase SQL Editor can split a multi-statement script across connections,
+-- which makes session-local temporary tables unreliable.
+drop table if exists public.jahan_demo_seed_refs;
+create table public.jahan_demo_seed_refs (
   key text primary key,
   id uuid not null
-) on commit drop;
+);
+alter table public.jahan_demo_seed_refs enable row level security;
 
 -- Auth accounts are deliberately limited to representative users. Every
 -- student, guardian, and teacher has a school record, while the accounts below
@@ -510,5 +513,7 @@ select
   (select count(*) from public.grade_entries ge join public.exam_subjects es on es.id = ge.exam_subject_id where es.exam_id = (select id from jahan_demo_seed_refs where key = 'mid_year_exam')) as mid_year_grade_entries,
   (select count(*) from public.fee_records where academic_year_id = (select id from jahan_demo_seed_refs where key = 'academic_year')) as fee_records,
   (select count(*) from public.announcements where id::text like 'a2000000-%') as announcements;
+
+drop table public.jahan_demo_seed_refs;
 
 commit;

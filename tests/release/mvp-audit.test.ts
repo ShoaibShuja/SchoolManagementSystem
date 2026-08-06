@@ -9,6 +9,9 @@ test("demo seed remains non-personal and satisfies the teacher record contract",
   assert.match(seed, /example\.invalid/);
   assert.match(seed, /first_name, last_name, phone, email, qualification/);
   assert.match(seed, /Demonstration record/);
+  assert.match(seed, /create table public\.jahan_demo_seed_refs/);
+  assert.match(seed, /drop table public\.jahan_demo_seed_refs/);
+  assert.doesNotMatch(seed, /create temporary table jahan_demo_seed_refs/);
 });
 
 test("grade-entry validation uses an unambiguous academic-year variable", async () => {
