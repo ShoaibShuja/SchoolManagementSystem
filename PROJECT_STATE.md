@@ -6,14 +6,14 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 
 ## Current phase
 
-- Current phase: fictional demo-data seed and grade-entry validation repair are complete in source; ready for disposable Supabase validation alongside the existing release gates.
-- Last completed prompt: fix the grade-entry trigger ambiguity blocking the fictional school seed.
+- Current phase: fictional demo-data seed is SQL Editor-compatible in source and ready for disposable Supabase validation alongside the existing release gates.
+- Last completed prompt: replace the seed's session-local reference table after Supabase SQL Editor could not retain it.
 - In progress: validate the new seed against a disposable Supabase project. Live Supabase, browser E2E, accessibility, responsive visual, backup/restore, and deployment verification remain pending.
 
 ## Branch and release commits
 
 - Current branch: `main`
-- Current feature commit: `5207f6d` (`fix: repair grade entry validation trigger`).
+- Current feature commit: `46a623c` (`fix: persist seed references across SQL editor statements`).
 - Last code merge: `d217248` (`Merge pull request #15 from ShoaibShuja/feat/dashboard-visual-refresh`)
 - Previous feature commit: `4104219` (`feat: add persistent dark mode`)
 - Release code baseline: `2b3d21c` (`chore: update release dependencies`)
@@ -26,6 +26,7 @@ Source release candidate complete. **Do not deploy to production yet.** Release 
 - Fictional demo seed: replaced the minimal local seed with a SQL Editor-ready, repeatable fictional Afghan school dataset. It covers fixed-role Auth accounts, Grade 7-9 academic setup, 48 students and guardians, eight teachers, enrollment, assignments, conflict-free timetable lessons, attendance, published and draft gradebooks, fee records/payments, and announcements. It is explicitly limited to disposable development or Preview projects.
 - Collision-safe demo seed: resolves academic years, terms, classes, sections, subjects, exams, and fee types through their business keys before dependent rows are written. It therefore reuses an existing `2026-2027` academic year instead of failing when that name was created by the earlier lightweight seed.
 - Grade-entry validation repair: migration 013 renames the trigger-local academic-year variable, removing the PostgreSQL column/variable ambiguity that blocked grade inserts. The seed applies the same idempotent function definition as a compatibility guard for projects already migrated through 012.
+- SQL Editor seed compatibility: the seed now creates, RLS-protects, and drops its business-key reference table in `public` rather than relying on a temporary table that can disappear when the SQL Editor splits statements across connections.
 - `432c341` / `7ab2f3d`: kept migration 011 limited to privileged fee and announcement workflows; private Storage policies remain in migration 004.
 - `5251efe` / `ef7a114`: corrected the Storage policy owner-id cast.
 - `b33cf57`: allows React's development-only CSP evaluation without adding `'unsafe-eval'` to production.

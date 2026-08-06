@@ -35,7 +35,7 @@ npm run bootstrap:admin
 
 ## Fictional demo data
 
-`supabase/seed.sql` creates 48 fictional students across Grade 7-9 sections A/B, eight teachers, 48 guardians, attendance, a conflict-free weekly timetable, published and draft exams, grades, fee records/payments, and targeted announcements. It also creates representative Admin, Teacher, Student, and Parent accounts. The shared non-production password is documented at the top of the SQL file. Apply it only after migrations 001-013 in a disposable project. It resolves existing academic setup records by their business keys, so it can coexist with the earlier lightweight demo seed. The seed also applies the grade-validation compatibility repair for databases that were previously migrated through 012.
+`supabase/seed.sql` creates 48 fictional students across Grade 7-9 sections A/B, eight teachers, 48 guardians, attendance, a conflict-free weekly timetable, published and draft exams, grades, fee records/payments, and targeted announcements. It also creates representative Admin, Teacher, Student, and Parent accounts. The shared non-production password is documented at the top of the SQL file. Apply it only after migrations 001-013 in a disposable project. It resolves existing academic setup records by their business keys, so it can coexist with the earlier lightweight demo seed. The seed also applies the grade-validation compatibility repair for databases that were previously migrated through 012 and cleans up its own reference helper at completion.
 
 ## Environment variables
 
